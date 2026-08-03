@@ -1,23 +1,6 @@
 {
   "version": 2,
   "buildCommand": "pnpm build",
-  "installCommand": "pnpm install",
-  "env": {
-    "NODE_ENV": "production"
-  },
-  "functions": {
-    "api/**": {
-      "runtime": "nodejs20.x"
-    }
-  },
-  "routes": [
-    {
-      "src": "/api/trpc/(.*)",
-      "dest": "/api/trpc.ts"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/dist/index.html"
-    }
-  ]
+  "outputDirectory": "dist",
+  "installCommand": "pnpm install"
 }
