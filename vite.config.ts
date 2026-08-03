@@ -162,10 +162,14 @@ export default defineConfig({
     },
   },
   envDir: path.resolve(import.meta.dirname),
+  define: {
+    __VERCEL_ENV__: JSON.stringify(process.env.VERCEL_ENV || 'development')
+  },
   root: path.resolve(import.meta.dirname, "client"),
+
   publicDir: path.resolve(import.meta.dirname, "client", "public"),
   build: {
-    outDir: path.resolve(import.meta.dirname, "dist/public"),
+    outDir: path.resolve(import.meta.dirname, "dist"),
     emptyOutDir: true,
   },
   server: {
@@ -176,6 +180,7 @@ export default defineConfig({
       ".manus-asia.computer",
       ".manuscomputer.ai",
       ".manusvm.computer",
+      ".vercel.app",
       "localhost",
       "127.0.0.1",
     ],
