@@ -1,0 +1,41 @@
+[WARN] The "pnpm" field in package.json is no longer read by pnpm. The following keys were ignored: "pnpm.patchedDependencies", "pnpm.overrides". See https://pnpm.io/settings for the new home of each setting.
+
+> jaqyn-ai@1.0.0 dev /home/ubuntu/jaqyn-forumnye
+> NODE_ENV=development tsx watch server/_core/index.ts
+
+[OAuth] Initialized with baseURL: 
+[OAuth] ERROR: OAUTH_SERVER_URL is not configured! Set OAUTH_SERVER_URL environment variable.
+Port 3000 is busy, using port 3002 instead
+Server running on http://localhost:3002/
+(!) %VITE_ANALYTICS_ENDPOINT% is not defined in env variables found in /.. Is the variable mistyped?
+(!) %VITE_ANALYTICS_WEBSITE_ID% is not defined in env variables found in /.. Is the variable mistyped?
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+(!) %VITE_ANALYTICS_ENDPOINT% is not defined in env variables found in /.. Is the variable mistyped?
+(!) %VITE_ANALYTICS_WEBSITE_ID% is not defined in env variables found in /.. Is the variable mistyped?
+(!) %VITE_ANALYTICS_ENDPOINT% is not defined in env variables found in /.. Is the variable mistyped?
+(!) %VITE_ANALYTICS_WEBSITE_ID% is not defined in env variables found in /.. Is the variable mistyped?
+(!) %VITE_ANALYTICS_ENDPOINT% is not defined in env variables found in /favicon.ico. Is the variable mistyped?
+(!) %VITE_ANALYTICS_WEBSITE_ID% is not defined in env variables found in /favicon.ico. Is the variable mistyped?
+(!) %VITE_ANALYTICS_ENDPOINT% is not defined in env variables found in /.. Is the variable mistyped?
+(!) %VITE_ANALYTICS_WEBSITE_ID% is not defined in env variables found in /.. Is the variable mistyped?
+(!) %VITE_ANALYTICS_ENDPOINT% is not defined in env variables found in /favicon.ico. Is the variable mistyped?
+(!) %VITE_ANALYTICS_WEBSITE_ID% is not defined in env variables found in /favicon.ico. Is the variable mistyped?
+[Auth] Missing session cookie
+(!) %VITE_ANALYTICS_ENDPOINT% is not defined in env variables found in /.. Is the variable mistyped?
+(!) %VITE_ANALYTICS_WEBSITE_ID% is not defined in env variables found in /.. Is the variable mistyped?
+(!) %VITE_ANALYTICS_ENDPOINT% is not defined in env variables found in /favicon.ico. Is the variable mistyped?
+(!) %VITE_ANALYTICS_WEBSITE_ID% is not defined in env variables found in /favicon.ico. Is the variable mistyped?
+(!) %VITE_ANALYTICS_ENDPOINT% is not defined in env variables found in /.. Is the variable mistyped?
+(!) %VITE_ANALYTICS_WEBSITE_ID% is not defined in env variables found in /.. Is the variable mistyped?
+(!) %VITE_ANALYTICS_ENDPOINT% is not defined in env variables found in /.. Is the variable mistyped?
+(!) %VITE_ANALYTICS_WEBSITE_ID% is not defined in env variables found in /.. Is the variable mistyped?
+(!) %VITE_ANALYTICS_ENDPOINT% is not defined in env variables found in /favicon.ico. Is the variable mistyped?
+(!) %VITE_ANALYTICS_WEBSITE_ID% is not defined in env variables found in /favicon.ico. Is the variable mistyped?
+(!) %VITE_ANALYTICS_ENDPOINT% is not defined in env variables found in /favicon.ico. Is the variable mistyped?
+(!) %VITE_ANALYTICS_WEBSITE_ID% is not defined in env variables found in /favicon.ico. Is the variable mistyped?
+(!) %VITE_ANALYTICS_ENDPOINT% is not defined in env variables found in /.. Is the variable mistyped?
+(!) %VITE_ANALYTICS_WEBSITE_ID% is not defined in env variables found in /.. Is the variable mistyped?
+(!) %VITE_ANALYTICS_ENDPOINT% is not defined in env variables found in /.. Is the variable mistyped?
+(!) %VITE_ANALYTICS_WEBSITE_ID% is not defined in env variables found in /.. Is the variable mistyped?
+(!) %VITE_ANALYTICS_ENDPOINT% is not defined in env variables found in /.. Is the variable mistyped?
+(!) %VITE_ANALYTICS_WEBSITE_ID% is not defined in env variables found in /.. Is the variable mistyped?
