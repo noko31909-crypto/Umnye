@@ -1,20 +1,19 @@
 {
+  "version": 2,
   "buildCommand": "pnpm build",
-  "outputDirectory": "dist",
   "installCommand": "pnpm install",
-  "functions": {
-    "api/**": {
-      "runtime": "nodejs20.x"
-    }
+  "env": {
+    "NODE_ENV": "production"
   },
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/trpc/:path*",
-      "destination": "/dist/index.js"
+      "src": "/api/trpc/(.*)",
+      "dest": "/dist/index.js",
+      "methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
     },
     {
-      "source": "/(.*)",
-      "destination": "/dist/index.html"
+      "src": "/(.*)",
+      "dest": "/dist/index.html"
     }
   ]
 }
