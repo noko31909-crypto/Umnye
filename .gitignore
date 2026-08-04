@@ -1,0 +1,17 @@
+node_modules/
+dist/
+.env
+.env.local
+.env.production
+*.log
+.manus-logs/
+__manus__/
+.project-config.json
+.prettierignore
+.prettierrc
+server.log
+jaqyn-ai-main/
+attached_assets/
+.mturk/
+turbo/
+.vite/

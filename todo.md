@@ -37,3 +37,12 @@
 
 ## Polish
 - [x] Final checkpoint and publish
+## Vercel Deployment
+- [ ] Configure vercel.json for serverless deployment
+- [ ] Create Vercel API routes (api/trpc/[trpc].ts)
+- [ ] Adapt server code for Vercel serverless functions
+- [ ] Add .env.example with required environment variables
+- [ ] Add .gitignore to exclude node_modules and sensitive files
+- [ ] Remove Manus-specific vite plugins and replace with Vercel-compatible alternatives
+- [ ] Push to GitHub for Vercel connection
+- [ ] Create deployment instructions
