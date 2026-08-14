@@ -1,7 +1,8 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, products, suppliers, supplierProducts, orders, orderItems, salesHistory, businessProfiles } from "../drizzle/schema";
 import { ENV } from './_core/env';
+import mockStore from './serpin-mock';
 
 // Re-export eq for use in appended code
 import { desc, sql, and, gte } from "drizzle-orm";
@@ -98,18 +99,12 @@ export async function getUserByOpenId(openId: string) {
 // Inventory module - Query Helpers
 // ============================================================================
 
-import {
-  products, suppliers, supplierProducts, orders, orderItems,
-  salesHistory, businessProfiles
-} from "../drizzle/schema";
 
 
 // ============================================================================
 // Inventory module — use in-memory mock store for reliable demo.
 // Falls back / prefers mock so tournament demo always works.
 // ============================================================================
-
-import mockStore from "./serpin-mock";
 
 const USE_MOCK = true; // Always use mock for stable demo. Set false to prefer real DB.
 
