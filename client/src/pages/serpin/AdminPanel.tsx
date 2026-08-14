@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { trpc } from "@/lib/trpc";
+import { useInventory } from "@/lib/inventory-api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,22 +17,16 @@ import { toast } from "sonner";
 const BUSINESS_ID = 1;
 
 export default function SerpinAdminPanel() {
-  const utils = trpc.useUtils();
-
-  // Products
-  const { data: products } = trpc.serpin.products.list.useQuery({ businessId: BUSINESS_ID });
-  const deleteProductMutation = trpc.serpin.products.delete.useMutation({
-    onSuccess: () => {
-      utils.serpin.products.list.invalidate({ businessId: BUSINESS_ID });
+  const inv = useInventory();
+  const products = inv.products.list(BUSINESS_ID);
+  const deleteProductMutation = {
+    mutate: ({ id }: { id: number }) => {
+      inv.products.delete(id);
       toast.success("Товар удалён");
     },
-  });
-
-  // Suppliers
-  const { data: suppliers } = trpc.serpin.suppliers.list.useQuery({ businessId: BUSINESS_ID });
-
-  // Orders
-  const { data: orders } = trpc.serpin.orders.list.useQuery({ businessId: BUSINESS_ID });
+  };
+  const suppliers = inv.suppliers.list(BUSINESS_ID);
+  const orders = inv.orders.list(BUSINESS_ID);
 
   return (
     <div className="space-y-6 p-6">

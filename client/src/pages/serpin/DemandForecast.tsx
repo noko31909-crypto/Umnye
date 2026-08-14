@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { trpc } from "@/lib/trpc";
+import { useInventory } from "@/lib/inventory-api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -14,16 +14,12 @@ export default function SerpinDemandForecast() {
   const [selectedProductId, setSelectedProductId] = useState<number | null>(1); // default to Молоко
   const [forecastDays, setForecastDays] = useState(14);
 
-  const { data: products } = trpc.serpin.products.list.useQuery({ businessId: BUSINESS_ID });
-
-  const { data: forecastData, isLoading } = trpc.serpin.forecast.demand.useQuery(
-    {
-      businessId: BUSINESS_ID,
-      productId: selectedProductId ?? 0,
-      forecastDays,
-    },
-    { enabled: selectedProductId !== null }
-  );
+  const inv = useInventory();
+  const products = inv.products.list(BUSINESS_ID);
+  const isLoading = false;
+  const forecastData = selectedProductId
+    ? inv.forecast.demand(BUSINESS_ID, selectedProductId)
+    : null;
 
   const chartData = (() => {
     if (!forecastData) return [];

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { trpc } from "@/lib/trpc";
+import { useInventory } from "@/lib/inventory-api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,20 +21,19 @@ export default function SerpinSuppliers() {
     avgDeliveryDays: "3", reliabilityScore: "90",
   });
 
-  const utils = trpc.useUtils();
-  const { data: suppliers, isLoading } = trpc.serpin.suppliers.list.useQuery({
-    businessId: BUSINESS_ID,
-  });
+  const inv = useInventory();
+  const suppliers = inv.suppliers.list(BUSINESS_ID);
+  const isLoading = false;
 
-  const createSupplierMutation = trpc.serpin.suppliers.create.useMutation({
-    onSuccess: () => {
-      utils.serpin.suppliers.list.invalidate({ businessId: BUSINESS_ID });
+  const createSupplierMutation = {
+    isPending: false,
+    mutate: (data: any) => {
+      inv.suppliers.create(data);
       setShowAddDialog(false);
       setNewSupplier({ name: "", category: "", contactPerson: "", phone: "", email: "", avgDeliveryDays: "3", reliabilityScore: "90" });
       toast.success("Поставщик добавлен");
     },
-    onError: () => toast.error("Ошибка при добавлении"),
-  });
+  };
 
   return (
     <div className="space-y-6 p-6">

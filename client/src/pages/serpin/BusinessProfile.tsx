@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { trpc } from "@/lib/trpc";
+import { useInventory } from "@/lib/inventory-api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,8 +11,9 @@ import { toast } from "sonner";
 export default function SerpinBusinessProfile() {
   const userId = 1; // Demo user ID
 
-  const utils = trpc.useUtils();
-  const { data: profile, isLoading } = trpc.serpin.profile.get.useQuery({ userId });
+  const inv = useInventory();
+  const profile = inv.profile.get(userId);
+  const isLoading = false;
 
   const [formData, setFormData] = useState({
     businessType: "coffee_shop",
@@ -34,13 +35,13 @@ export default function SerpinBusinessProfile() {
     }
   }, [profile]);
 
-  const saveMutation = trpc.serpin.profile.upsert.useMutation({
-    onSuccess: () => {
-      utils.serpin.profile.get.invalidate({ userId });
+  const saveMutation = {
+    isPending: false,
+    mutate: (data: any) => {
+      inv.profile.upsert(data);
       toast.success("Профиль сохранён");
     },
-    onError: () => toast.error("Ошибка при сохранении"),
-  });
+  };
 
   const businessTypes = [
     { value: "coffee_shop", label: "Кофейня" },

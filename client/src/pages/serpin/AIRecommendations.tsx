@@ -1,4 +1,4 @@
-import { trpc } from "@/lib/trpc";
+import { useInventory } from "@/lib/inventory-api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,11 +28,10 @@ const typeColors = {
 export default function SerpinAIRecommendations() {
   const [, navigate] = useLocation();
 
-  const { data: recommendations, isLoading } = trpc.serpin.dashboard.recommendations.useQuery({
-    businessId: BUSINESS_ID,
-  });
-
-  const { data: metrics } = trpc.serpin.dashboard.metrics.useQuery({ businessId: BUSINESS_ID });
+  const inv = useInventory();
+  const recommendations = inv.dashboard.recommendations(BUSINESS_ID);
+  const metrics = inv.dashboard.metrics(BUSINESS_ID);
+  const isLoading = false;
 
   // Group by type
   const urgentRecs = recommendations?.filter(r => r.type === "urgent") || [];

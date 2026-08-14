@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { trpc } from "@/lib/trpc";
+import { useInventory } from "@/lib/inventory-api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,24 +19,26 @@ export default function SerpinAutoOrder() {
   const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
   const [createdOrderId, setCreatedOrderId] = useState<number | null>(null);
 
-  const utils = trpc.useUtils();
-  const { data: products, isLoading: productsLoading } = trpc.serpin.products.list.useQuery({
-    businessId: BUSINESS_ID,
-  });
-  const { data: suppliers, isLoading: suppliersLoading } = trpc.serpin.suppliers.list.useQuery({
-    businessId: BUSINESS_ID,
-  });
+  const inv = useInventory();
+  const products = inv.products.list(BUSINESS_ID);
+  const suppliers = inv.suppliers.list(BUSINESS_ID);
+  const productsLoading = false;
+  const suppliersLoading = false;
 
-  const createOrderMutation = trpc.serpin.orders.create.useMutation({
-    onSuccess: (data) => {
-      setCreatedOrderId(data.orderId);
-      setStep("done");
-      utils.serpin.orders.list.invalidate({ businessId: BUSINESS_ID });
-      utils.serpin.products.list.invalidate({ businessId: BUSINESS_ID });
-      toast.success("Заказ отправлен!");
+  const createOrderMutation = {
+    isPending: false,
+    mutate: (data: any) => {
+      try {
+        const result = inv.orders.create(data);
+        setCreatedOrderId(result.orderId);
+        setStep("done");
+        toast.success("Заказ отправлен!");
+      } catch {
+        toast.error("Ошибка при создании заказа");
+        setStep("select");
+      }
     },
-    onError: () => toast.error("Ошибка при создании заказа"),
-  });
+  };
 
   // Filter products that need ordering (low stock or critical)
   const needsOrder = products?.filter(p =>

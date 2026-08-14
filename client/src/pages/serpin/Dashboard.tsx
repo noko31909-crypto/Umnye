@@ -1,4 +1,4 @@
-import { trpc } from "@/lib/trpc";
+import { useInventory } from "@/lib/inventory-api";
 import { useSimpleAuth } from "@/hooks/useSimpleAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,24 +18,19 @@ export default function SerpinDashboard() {
   const [, navigate] = useLocation();
   const { user } = useSimpleAuth();
 
-  const { data: metrics, isLoading: metricsLoading } = trpc.serpin.dashboard.metrics.useQuery({
-    businessId: BUSINESS_ID,
-  });
+  const inv = useInventory();
+  const metrics = inv.dashboard.metrics(BUSINESS_ID);
 
-  const { data: recommendations, isLoading: recsLoading } = trpc.serpin.dashboard.recommendations.useQuery({
-    businessId: BUSINESS_ID,
-  });
+  const recommendations = inv.dashboard.recommendations(BUSINESS_ID);
+  const recsLoading = false;
 
-  const utils = trpc.useUtils();
-  const simulateSale = trpc.serpin.demo.simulateSale.useMutation({
-    onSuccess: (data) => {
-      utils.serpin.dashboard.metrics.invalidate({ businessId: BUSINESS_ID });
-      utils.serpin.dashboard.recommendations.invalidate({ businessId: BUSINESS_ID });
-      utils.serpin.products.list.invalidate({ businessId: BUSINESS_ID });
-      const name = data?.product?.name ?? "Товар";
-      toast.success(`Продажа: ${name} — остаток обновлён`);
+  const simulateSale = {
+    isPending: false,
+    mutate: ({ productId, qty }: { productId: number; qty: number }) => {
+      const product = inv.demo.simulateSale(productId, qty);
+      toast.success(`Продажа: ${product?.name ?? "Товар"} — остаток обновлён`);
     },
-  });
+  };
 
   const typeIcons = {
     urgent: <AlertTriangle className="w-5 h-5 text-red-500" />,

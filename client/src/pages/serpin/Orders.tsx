@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { trpc } from "@/lib/trpc";
+import { useInventory } from "@/lib/inventory-api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,17 +26,18 @@ const statusFlow = ["pending", "confirmed", "collecting", "in_transit", "deliver
 export default function SerpinOrders() {
   const [statusFilter, setStatusFilter] = useState("all");
 
-  const utils = trpc.useUtils();
-  const { data: orders, isLoading } = trpc.serpin.orders.list.useQuery({ businessId: BUSINESS_ID });
-  const { data: suppliers } = trpc.serpin.suppliers.list.useQuery({ businessId: BUSINESS_ID });
+  const inv = useInventory();
+  const orders = inv.orders.list(BUSINESS_ID);
+  const suppliers = inv.suppliers.list(BUSINESS_ID);
+  const isLoading = false;
 
-  const updateStatusMutation = trpc.serpin.orders.updateStatus.useMutation({
-    onSuccess: () => {
-      utils.serpin.orders.list.invalidate({ businessId: BUSINESS_ID });
+  const updateStatusMutation = {
+    isPending: false,
+    mutate: ({ id, status }: { id: number; status: string }) => {
+      inv.orders.updateStatus(id, status);
       toast.success("Статус обновлён");
     },
-    onError: () => toast.error("Ошибка при обновлении"),
-  });
+  };
 
   const supplierMap = new Map(suppliers?.map(s => [s.id, s.name]) ?? []);
 

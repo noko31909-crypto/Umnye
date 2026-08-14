@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { trpc } from "@/lib/trpc";
+import { useInventory } from "@/lib/inventory-api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -33,31 +33,32 @@ export default function SerpinInventory() {
     costPrice: "0", sellingPrice: "0",
   });
 
-  const utils = trpc.useUtils();
-  const { data: products, isLoading } = trpc.serpin.products.list.useQuery({ businessId: BUSINESS_ID });
+  const inv = useInventory();
+  const products = inv.products.list(BUSINESS_ID);
+  const isLoading = false;
 
-  const createProductMutation = trpc.serpin.products.create.useMutation({
-    onSuccess: () => {
-      utils.serpin.products.list.invalidate({ businessId: BUSINESS_ID });
+  const createProductMutation = {
+    isPending: false,
+    mutate: (data: any) => {
+      inv.products.create(data);
       setShowAddDialog(false);
       setNewProduct({ name: "", category: "", unit: "шт", minStock: "10", avgSalesPerDay: "0", costPrice: "0", sellingPrice: "0" });
       toast.success("Товар добавлен");
     },
-    onError: () => toast.error("Ошибка при добавлении"),
-  });
+  };
 
-  const deleteProductMutation = trpc.serpin.products.delete.useMutation({
-    onSuccess: () => {
-      utils.serpin.products.list.invalidate({ businessId: BUSINESS_ID });
+  const deleteProductMutation = {
+    mutate: ({ id }: { id: number }) => {
+      inv.products.delete(id);
       toast.success("Товар удалён");
     },
-  });
+  };
 
-  const updateStockMutation = trpc.serpin.products.updateStock.useMutation({
-    onSuccess: () => {
-      utils.serpin.products.list.invalidate({ businessId: BUSINESS_ID });
+  const updateStockMutation = {
+    mutate: ({ id, newStock }: { id: number; newStock: number }) => {
+      inv.products.updateStock(id, newStock);
     },
-  });
+  };
 
   const filteredProducts = products?.filter(p =>
     p.name.toLowerCase().includes(search.toLowerCase()) ||

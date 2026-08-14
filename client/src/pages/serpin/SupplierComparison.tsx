@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { trpc } from "@/lib/trpc";
+import { useInventory } from "@/lib/inventory-api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,13 +18,12 @@ type ComparisonData = {
 export default function SerpinSupplierComparison() {
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
 
-  const { data: products } = trpc.serpin.products.list.useQuery({ businessId: BUSINESS_ID });
-  const { data: rawComparisonData, isLoading } = trpc.serpin.suppliers.forProduct.useQuery(
-    { productId: selectedProductId ?? 0 },
-    { enabled: selectedProductId !== null }
-  );
-
-  const comparisonData = rawComparisonData as ComparisonData | undefined;
+  const inv = useInventory();
+  const products = inv.products.list(BUSINESS_ID);
+  const isLoading = false;
+  const comparisonData = (selectedProductId
+    ? inv.suppliers.forProduct(selectedProductId)
+    : undefined) as ComparisonData | undefined;
   const hasComparisonData = !!comparisonData && comparisonData.suppliers && comparisonData.suppliers.length > 0;
 
   const bestSupplier = (() => {
