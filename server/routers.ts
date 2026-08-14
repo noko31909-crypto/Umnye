@@ -172,10 +172,8 @@ export const ordersRouter = router({
     }))
     .mutation(async ({ input }) => {
       const { items, ...orderData } = input;
-      // Pass items so mock store can create order + items atomically
-      const result = await db.createOrder({ ...orderData, items });
+      const result: any = await db.createOrder({ ...orderData, items });
       const orderId = result?.orderId ?? result?.insertId;
-      // Real DB path may still need separate insert
       if (orderId && result && !result.orderId) {
         await db.createOrderItems(items.map(item => ({
           orderId,
