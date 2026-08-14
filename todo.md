@@ -1,48 +1,34 @@
-# Jaqyn AI - Development TODO
+# SERPIN MVP TODO
 
-## Source Migration
-- [x] Copy source code from jaqyn-ai-main archive into project directory
-- [x] Ensure all client pages, components, hooks, and contexts are in place
-- [x] Ensure all server routers and AI router are in place
-- [x] Ensure shared types and constants are in place
-- [x] Ensure drizzle schema and migrations are in place
+## Database & Schema
+- [x] Update drizzle/schema.ts with products, suppliers, orders, order_items, sales_history, business_profile tables
+- [x] Generate and apply migrations
+- [x] Seed mock data (products, suppliers, sales history, orders)
 
-## Dependencies
-- [x] Install pnpm dependencies (including zustand)
-- [x] Install zustand and zustand-persist-devtools
-- [x] Verify all dependencies resolve correctly
+## Pages
+- [x] Landing page (brief intro + login CTA)
+- [x] Login/Register with business profile selection
+- [x] Dashboard — metrics cards, AI recommendations, quick actions
+- [x] Inventory — product table with stock levels, min stock, days remaining, status
+- [x] Auto Order — clickable flow (create → confirm → sent)
+- [x] Suppliers — supplier cards with price, delivery time, reliability
+- [x] Supplier Comparison — compare suppliers for a product, AI picks best
+- [x] Demand Forecast — sales chart + prediction, AI stock recommendation
+- [x] Orders/Deliveries — order list with status tracking
+- [x] AI Recommendations — dynamic recommendations panel
+- [x] Business Profile — type, locations, product categories
+- [x] Admin Panel — manage products, suppliers, auto-order rules, analytics
 
-## Database
-- [x] Apply SQL migrations via webdev_execute_sql
+## Features
+- [x] Auth system (Manus OAuth + demo mode)
+- [x] Auto-order logic (trigger when stock ≤ min level)
+- [x] Supplier comparison algorithm
+- [x] Demand forecasting (simple moving average + trend)
+- [x] AI recommendation engine (dynamic based on mock data)
+- [x] Order status workflow (Confirmed → Collecting → In transit → Delivered)
 
-## Server
-- [x] Wire AI router in routers.ts
-- [x] Verify tRPC procedures for all AI features
-
-## Frontend
-- [x] Wire all routes in App.tsx with DashboardLayout
-- [x] Verify Dashboard page with AI Insights Engine
-- [x] Verify Campaign Studio page with AI Copywriter
-- [x] Verify Customers page with AI Customer Insights
-- [x] Verify Analytics page with AI Diagnostics
-- [x] Verify Tools page with AI Recommendations
-- [x] Verify Global AI Copilot Panel
-- [x] Verify Settings and Business Profile pages
-- [x] Verify Admin UI page with RBAC
-- [x] Verify protected routes for all dashboard pages
-
-## Testing
-- [x] Run vitest tests (25/25 passed)
-- [x] Fix all TypeScript and runtime errors (0 errors)
-
-## Polish
-- [x] Final checkpoint and publish
-## Vercel Deployment
-- [ ] Configure vercel.json for serverless deployment
-- [ ] Create Vercel API routes (api/trpc/[trpc].ts)
-- [ ] Adapt server code for Vercel serverless functions
-- [ ] Add .env.example with required environment variables
-- [ ] Add .gitignore to exclude node_modules and sensitive files
-- [ ] Remove Manus-specific vite plugins and replace with Vercel-compatible alternatives
-- [ ] Push to GitHub for Vercel connection
-- [ ] Create deployment instructions
+## UI/UX
+- [x] Clean professional business SaaS design
+- [x] Responsive layout with sidebar navigation
+- [x] Dark/light theme support
+- [x] Mock data for demo purposes

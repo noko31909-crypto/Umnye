@@ -19,6 +19,18 @@ import BusinessProfile from "./pages/BusinessProfile";
 import Settings from "./pages/Settings";
 import AdminUI from "./pages/AdminUI";
 import AICopilotPanel from "./components/AICopilotPanel";
+import {
+  SerpinDashboardPage,
+  SerpinInventoryPage,
+  SerpinAutoOrderPage,
+  SerpinSuppliersPage,
+  SerpinSupplierComparisonPage,
+  SerpinDemandForecastPage,
+  SerpinOrdersPage,
+  SerpinAIRecommendationsPage,
+  SerpinBusinessProfilePage,
+  SerpinAdminPanelPage,
+} from "./pages/serpin/SerpinPages";
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
   const { user, loading } = useSimpleAuth();
@@ -63,6 +75,17 @@ function Router() {
       <Route path={"/settings/profile"} component={() => <ProtectedRoute component={BusinessProfile} />} />
       <Route path={"/settings"} component={() => <ProtectedRoute component={Settings} />} />
       <Route path={"/admin"} component={() => <ProtectedRoute component={AdminUI} />} />
+      {/* SERPIN Routes */}
+      <Route path={"/serpin"} component={SerpinDashboardPage} />
+      <Route path={"/serpin/inventory"} component={SerpinInventoryPage} />
+      <Route path={"/serpin/auto-order"} component={SerpinAutoOrderPage} />
+      <Route path={"/serpin/suppliers"} component={SerpinSuppliersPage} />
+      <Route path={"/serpin/comparison"} component={SerpinSupplierComparisonPage} />
+      <Route path={"/serpin/forecast"} component={SerpinDemandForecastPage} />
+      <Route path={"/serpin/orders"} component={SerpinOrdersPage} />
+      <Route path={"/serpin/recommendations"} component={SerpinAIRecommendationsPage} />
+      <Route path={"/serpin/profile"} component={SerpinBusinessProfilePage} />
+      <Route path={"/serpin/admin"} component={SerpinAdminPanelPage} />
       <Route path={"/home"} component={Home} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />

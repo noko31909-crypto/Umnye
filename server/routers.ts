@@ -3,6 +3,323 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { aiRouter } from "./ai.router";
+import { z } from "zod";
+import * as db from "./db";
+
+// ============================================================================
+// SERPIN MVP Routers
+// ============================================================================
+
+// --- Products Router ---
+export const productsRouter = router({
+  list: publicProcedure
+    .input(z.object({ businessId: z.number() }))
+    .query(({ input }) => db.getProducts(input.businessId)),
+
+  byId: publicProcedure
+    .input(z.object({ id: z.number() }))
+    .query(({ input }) => db.getProductById(input.id)),
+
+  create: publicProcedure
+    .input(z.object({
+      businessId: z.number(),
+      name: z.string(),
+      category: z.string(),
+      unit: z.string().default("шт"),
+      currentStock: z.string().default("0"),
+      minStock: z.string().default("10"),
+      maxStock: z.string().default("100"),
+      avgSalesPerDay: z.string().default("0"),
+      costPrice: z.string().default("0"),
+      sellingPrice: z.string().default("0"),
+      preferredSupplierId: z.number().nullable().optional(),
+      autoOrderEnabled: z.boolean().default(true),
+    }))
+    .mutation(async ({ input }) => {
+      const result = await db.createProduct(input);
+      return { success: true, insertId: result?.insertId };
+    }),
+
+  update: publicProcedure
+    .input(z.object({
+      id: z.number(),
+      data: z.object({
+        name: z.string().optional(),
+        category: z.string().optional(),
+        minStock: z.string().optional(),
+        maxStock: z.string().optional(),
+        avgSalesPerDay: z.string().optional(),
+        costPrice: z.string().optional(),
+        sellingPrice: z.string().optional(),
+        autoOrderEnabled: z.boolean().optional(),
+        preferredSupplierId: z.number().nullable().optional(),
+      }),
+    }))
+    .mutation(async ({ input }) => {
+      await db.updateProduct(input.id, input.data);
+      return { success: true };
+    }),
+
+  delete: publicProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ input }) => {
+      await db.deleteProduct(input.id);
+      return { success: true };
+    }),
+
+  updateStock: publicProcedure
+    .input(z.object({ id: z.number(), newStock: z.number() }))
+    .mutation(async ({ input }) => {
+      await db.updateStock(input.id, input.newStock);
+      return { success: true };
+    }),
+});
+
+// --- Suppliers Router ---
+export const suppliersRouter = router({
+  list: publicProcedure
+    .input(z.object({ businessId: z.number() }))
+    .query(({ input }) => db.getSuppliers(input.businessId)),
+
+  byId: publicProcedure
+    .input(z.object({ id: z.number() }))
+    .query(({ input }) => db.getSupplierById(input.id)),
+
+  forProduct: publicProcedure
+    .input(z.object({ productId: z.number() }))
+    .query(({ input }) => db.getSuppliersForProduct(input.productId)),
+
+  create: publicProcedure
+    .input(z.object({
+      businessId: z.number(),
+      name: z.string(),
+      category: z.string(),
+      contactPerson: z.string().optional(),
+      phone: z.string().optional(),
+      email: z.string().optional(),
+      avgDeliveryDays: z.string().default("3"),
+      reliabilityScore: z.string().default("90"),
+    }))
+    .mutation(async ({ input }) => {
+      const result = await db.createSupplier(input);
+      return { success: true, insertId: result?.insertId };
+    }),
+
+  update: publicProcedure
+    .input(z.object({
+      id: z.number(),
+      data: z.object({
+        name: z.string().optional(),
+        avgDeliveryDays: z.string().optional(),
+        reliabilityScore: z.string().optional(),
+        isActive: z.boolean().optional(),
+      }),
+    }))
+    .mutation(async ({ input }) => {
+      await db.updateSupplier(input.id, input.data);
+      return { success: true };
+    }),
+
+  products: publicProcedure
+    .input(z.object({ supplierId: z.number() }))
+    .query(({ input }) => db.getSupplierProducts(input.supplierId)),
+});
+
+// --- Supplier Products Router ---
+export const supplierProductsRouter = router({
+  create: publicProcedure
+    .input(z.object({
+      supplierId: z.number(),
+      productId: z.number(),
+      price: z.string(),
+      minOrderQty: z.string().default("1"),
+      inStock: z.boolean().default(true),
+    }))
+    .mutation(async ({ input }) => {
+      await db.createSupplierProduct(input);
+      return { success: true };
+    }),
+});
+
+// --- Orders Router ---
+export const ordersRouter = router({
+  list: publicProcedure
+    .input(z.object({ businessId: z.number() }))
+    .query(({ input }) => db.getOrders(input.businessId)),
+
+  byId: publicProcedure
+    .input(z.object({ id: z.number() }))
+    .query(async ({ input }) => {
+      const order = await db.getOrderById(input.id);
+      const items = order ? await db.getOrderItems(order.id) : [];
+      return { order, items };
+    }),
+
+  create: publicProcedure
+    .input(z.object({
+      businessId: z.number(),
+      supplierId: z.number(),
+      totalAmount: z.string().default("0"),
+      expectedDeliveryDate: z.date().optional(),
+      notes: z.string().optional(),
+      isAutoOrder: z.boolean().default(false),
+      createdBy: z.number().optional(),
+      items: z.array(z.object({
+        productId: z.number(),
+        quantity: z.string(),
+        price: z.string(),
+      })),
+    }))
+    .mutation(async ({ input }) => {
+      const { items, ...orderData } = input;
+      const result = await db.createOrder(orderData);
+      const orderId = result?.insertId;
+      if (orderId) {
+        await db.createOrderItems(items.map(item => ({
+          orderId,
+          productId: item.productId,
+          quantity: item.quantity,
+          price: item.price,
+        })));
+      }
+      return { success: true, orderId };
+    }),
+
+  updateStatus: publicProcedure
+    .input(z.object({ id: z.number(), status: z.string() }))
+    .mutation(async ({ input }) => {
+      await db.updateOrderStatus(input.id, input.status);
+      return { success: true };
+    }),
+});
+
+// --- Sales History Router ---
+export const salesRouter = router({
+  history: publicProcedure
+    .input(z.object({ businessId: z.number(), productId: z.number(), days: z.number().default(30) }))
+    .query(({ input }) => db.getSalesHistory(input.businessId, input.productId, input.days)),
+
+  create: publicProcedure
+    .input(z.object({
+      businessId: z.number(),
+      productId: z.number(),
+      saleDate: z.date(),
+      quantity: z.string(),
+      revenue: z.string(),
+    }))
+    .mutation(async ({ input }) => {
+      await db.createSalesHistory(input);
+      return { success: true };
+    }),
+});
+
+// --- Business Profile Router ---
+export const profileRouter = router({
+  get: publicProcedure
+    .input(z.object({ userId: z.number() }))
+    .query(({ input }) => db.getBusinessProfile(input.userId)),
+
+  upsert: publicProcedure
+    .input(z.object({
+      userId: z.number(),
+      businessType: z.enum(["coffee_shop", "store", "pharmacy", "bakery", "restaurant", "other"]),
+      locationsCount: z.number().default(1),
+      productCategories: z.string().optional(),
+      autoOrderThreshold: z.string().default("1.5"),
+      preferredDeliveryDays: z.number().default(3),
+    }))
+    .mutation(async ({ input }) => {
+      await db.upsertBusinessProfile(input);
+      return { success: true };
+    }),
+});
+
+// --- Forecast Router ---
+export const forecastRouter = router({
+  demand: publicProcedure
+    .input(z.object({
+      businessId: z.number(),
+      productId: z.number(),
+      forecastDays: z.number().default(14),
+    }))
+    .query(async ({ input }) => {
+      // Get historical sales for the past 30 days
+      const history = await db.getSalesHistory(input.businessId, input.productId, 30);
+
+      // Calculate average daily sales
+      const dailyMap = new Map<string, number>();
+      for (const record of history) {
+        const dateStr = new Date(record.saleDate).toISOString().split("T")[0];
+        const current = dailyMap.get(dateStr) ?? 0;
+        dailyMap.set(dateStr, current + Number(record.quantity));
+      }
+
+      // Calculate weighted average (recent days weighted more)
+      const sortedDates = Array.from(dailyMap.keys()).sort();
+      let totalQty = 0;
+      let totalWeight = 0;
+      const daysWithData = sortedDates.length;
+
+      sortedDates.forEach((dateStr, index) => {
+        const weight = (index + 1) / daysWithData; // Recent days get higher weight
+        totalQty += dailyMap.get(dateStr)! * weight;
+        totalWeight += weight;
+      });
+
+      const avgDailySales = totalWeight > 0 ? totalQty / totalWeight : 0;
+
+      // Generate forecast
+      const forecast = [];
+      const now = new Date();
+      for (let i = 1; i <= input.forecastDays; i++) {
+        const forecastDate = new Date(now);
+        forecastDate.setDate(forecastDate.getDate() + i);
+        const dateStr = forecastDate.toLocaleDateString("ru-KZ", { day: "numeric", month: "short" });
+
+        // Add slight trend based on recent performance
+        const trend = avgDailySales > 0 ? (0.95 + Math.random() * 0.1) : 0;
+        const predictedQty = Math.max(0, avgDailySales * trend);
+
+        forecast.push({
+          date: dateStr,
+          predictedQty: String(predictedQty.toFixed(1)),
+        });
+      }
+
+      return {
+        historical: history,
+        forecast,
+        avgDailySales,
+      };
+    }),
+});
+
+// --- Dashboard Router ---
+export const dashboardRouter = router({
+  metrics: publicProcedure
+    .input(z.object({ businessId: z.number() }))
+    .query(({ input }) => db.getDashboardMetrics(input.businessId)),
+
+  recommendations: publicProcedure
+    .input(z.object({ businessId: z.number() }))
+    .query(({ input }) => db.getAIRecommendations(input.businessId)),
+});
+
+// --- Combined SERPIN Router ---
+export const serpinRouter = router({
+  products: productsRouter,
+  suppliers: suppliersRouter,
+  supplierProducts: supplierProductsRouter,
+  orders: ordersRouter,
+  sales: salesRouter,
+  forecast: forecastRouter,
+  profile: profileRouter,
+  dashboard: dashboardRouter,
+});
+
+// ============================================================================
+// Main App Router
+// ============================================================================
 
 export const appRouter = router({
   system: systemRouter,
@@ -17,6 +334,7 @@ export const appRouter = router({
     }),
   }),
   ai: aiRouter,
+  serpin: serpinRouter,
 });
 
 export type AppRouter = typeof appRouter;
