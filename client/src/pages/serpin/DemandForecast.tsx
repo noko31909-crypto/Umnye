@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useInventory } from "@/lib/inventory-api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { TrendingUp, Package, Brain, Calendar } from "lucide-react";
@@ -18,7 +19,7 @@ export default function SerpinDemandForecast() {
   const products = inv.products.list(BUSINESS_ID);
   const isLoading = false;
   const forecastData = selectedProductId
-    ? inv.forecast.demand(BUSINESS_ID, selectedProductId)
+    ? inv.explain.forecast(BUSINESS_ID, selectedProductId)
     : null;
 
   const chartData = (() => {
@@ -165,6 +166,36 @@ export default function SerpinDemandForecast() {
           )}
         </CardContent>
       </Card>
+
+      {forecastData && (forecastData as any).factors && (
+        <Card className="border-blue-200 bg-blue-50/40">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Brain className="w-4 h-4 text-blue-600" />
+              Почему такой прогноз
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-blue-900 font-medium">{(forecastData as any).narrative}</p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {((forecastData as any).factors || []).map((f: any) => (
+                <div key={f.key} className="rounded-lg bg-white border border-blue-100 p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-sm font-medium">{f.label}</span>
+                    <Badge variant="secondary" className="text-xs">{f.effect}</Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">{f.detail}</p>
+                </div>
+              ))}
+            </div>
+            {(forecastData as any).recommendedQty != null && (
+              <p className="text-sm">
+                Рекомендуемый заказ: <strong>{(forecastData as any).recommendedQty}</strong> ед.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

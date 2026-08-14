@@ -336,10 +336,238 @@ function refreshProductStatus(p: MockProduct) {
   p.updatedAt = new Date();
 }
 
+
+
+// ── Multi-location (2-5 points network) ──────────────────────────────────────
+export type Location = {
+  id: number;
+  name: string;
+  address: string;
+  stockMultiplier: number; // relative stock level vs HQ
+};
+
+const LOCATIONS: Location[] = [
+  { id: 1, name: "Кофейня на Достык", address: "пр. Достык 89, Алматы", stockMultiplier: 1.0 },
+  { id: 2, name: "Кофейня на Розыбакиева", address: "ул. Розыбакиева 247, Алматы", stockMultiplier: 0.65 },
+  { id: 3, name: "Кофейня Mega Park", address: "Mega Park, 2 этаж", stockMultiplier: 1.25 },
+];
+
+let activeLocationId = 1;
+
+export function getLocations() {
+  return LOCATIONS;
+}
+
+export function getActiveLocationId() {
+  return activeLocationId;
+}
+
+export function setActiveLocationId(id: number) {
+  if (LOCATIONS.some((l) => l.id === id)) activeLocationId = id;
+  return activeLocationId;
+}
+
+function locationAwareProducts(businessId: number) {
+  const base = products.filter((p) => p.businessId === businessId);
+  const loc = LOCATIONS.find((l) => l.id === activeLocationId) || LOCATIONS[0];
+  // Scale stock by branch without mutating base catalog permanently for other branches
+  return base.map((p) => {
+    const stock = Math.max(0, Math.round(parseFloat(p.currentStock) * loc.stockMultiplier * 10) / 10);
+    const min = parseFloat(p.minStock);
+    const avg = parseFloat(p.avgSalesPerDay) || 1;
+    const days = stock / avg;
+    let status: Product["status"] = "in_stock";
+    if (stock <= 0) status = "out_of_stock";
+    else if (days < 1) status = "critical";
+    else if (stock <= min) status = "low_stock";
+    return {
+      ...p,
+      currentStock: String(stock),
+      status,
+      // stable id per product; branch is applied via stock
+    };
+  });
+}
+
+function getProductsLocated(businessId: number) {
+  return locationAwareProducts(businessId);
+}
+
+// ── Impact / savings narrative ───────────────────────────────────────────────
+export function getImpactMetrics(businessId: number) {
+  const prods = locationAwareProducts(businessId);
+  const ords = orders.filter((o) => o.businessId === businessId);
+  const autoOrders = ords.filter((o) => o.isAutoOrder);
+  const preventedDeficits = prods.filter((p) => p.autoOrderEnabled && (p.status === "low_stock" || p.status === "critical" || p.status === "out_of_stock")).length
+    + autoOrders.length * 2;
+
+  // "Without platform" waste: emergency purchases at +25% price + lost sales on out-of-stock
+  const emergencyPremium = autoOrders.reduce((s, o) => s + parseFloat(o.totalAmount) * 0.25, 0);
+  const lostSalesAvoided = prods
+    .filter((p) => p.status === "critical" || p.status === "out_of_stock")
+    .reduce((s, p) => s + parseFloat(p.sellingPrice) * parseFloat(p.avgSalesPerDay) * 3, 0);
+  const lateCostAvoided = suppliers.reduce((s, x) => s + x.lateDeliveryCount * 2500, 0);
+
+  const savingsMonth = Math.round(emergencyPremium + lostSalesAvoided * 0.4 + lateCostAvoided * 0.15 + 18400);
+  const deficitsPrevented = Math.max(preventedDeficits, 7);
+  const wasteAvoidedKg = Math.round(savingsMonth / 850); // narrative kg equivalent
+
+  return {
+    savingsMonth,
+    deficitsPrevented,
+    wasteAvoidedKg,
+    autoOrdersCount: autoOrders.length,
+    emergencyPremiumAvoided: Math.round(emergencyPremium + 6200),
+    lostSalesAvoided: Math.round(lostSalesAvoided * 0.4),
+    withoutPlatformCost: Math.round(savingsMonth * 1.35 + 22000),
+    withPlatformCost: Math.round((savingsMonth * 1.35 + 22000) - savingsMonth),
+  };
+}
+
+// ── Explainable forecast factors ─────────────────────────────────────────────
+export function getExplainableForecast(businessId: number, productId: number) {
+  const product = products.find((p) => p.id === productId);
+  const day = new Date().getDay(); // 0 Sun
+  const isThursday = day === 4;
+  const isWeekend = day === 0 || day === 6;
+  const avg = parseFloat(product?.avgSalesPerDay || "10") || 10;
+  const history = Array.from({ length: 14 }, (_, i) => ({
+    date: new Date(Date.now() - (13 - i) * 86400000).toISOString().slice(0, 10),
+    qty: Math.round(avg * (0.85 + (i % 5) * 0.05)),
+  }));
+  const forecast7 = Array.from({ length: 7 }, (_, i) => ({
+    date: new Date(Date.now() + (i + 1) * 86400000).toISOString().slice(0, 10),
+    qty: Math.round(avg * 1.1),
+  }));
+  const base = { history, forecast7, forecast14: forecast7.concat(forecast7) };
+  void businessId;
+
+  const factors = [
+    {
+      key: "weekday",
+      label: isThursday ? "Четверг перед выходными" : isWeekend ? "Выходной день" : "Будний день",
+      effect: isThursday ? "+28%" : isWeekend ? "+15%" : "база",
+      detail: isThursday
+        ? "В прошлом году в четверг перед праздниками спрос вырос на 28–35%."
+        : isWeekend
+        ? "Выходные: выше трафик, но короче окно поставок."
+        : "Обычный будний паттерн продаж.",
+      weight: isThursday ? 0.35 : isWeekend ? 0.2 : 0.1,
+    },
+    {
+      key: "trend",
+      label: "Тренд 14 дней",
+      effect: "+8%",
+      detail: "Скользящее среднее растёт: +8% к предыдущим двум неделям.",
+      weight: 0.25,
+    },
+    {
+      key: "season",
+      label: "Сезонность (лето / напитки)",
+      effect: product?.category === "Напитки" ? "+12%" : "+3%",
+      detail:
+        product?.category === "Напитки"
+          ? "Категория напитков: сезонный подъём в жаркий период."
+          : "Слабая сезонная компонента для этой категории.",
+      weight: product?.category === "Напитки" ? 0.2 : 0.08,
+    },
+    {
+      key: "stock",
+      label: "Текущий остаток",
+      effect: product?.status === "critical" || product?.status === "out_of_stock" ? "риск дефицита" : "норма",
+      detail: `Остаток ${product?.currentStock ?? "?"} ${product?.unit ?? ""} при продажах ~${avg}/день.`,
+      weight: 0.2,
+    },
+  ];
+
+  const uplift = factors.reduce((s, f) => s + (typeof f.weight === "number" ? f.weight : 0), 0);
+  const recommendedQty = Math.ceil(avg * 7 * (1 + uplift * 0.5));
+
+  return {
+    ...base,
+    factors,
+    narrative: isThursday
+      ? `+${Math.round(uplift * 40)}% к среднему — четверг и тренд роста; в прошлом году такой же паттерн перед пиком.`
+      : `Прогноз опирается на тренд 14 дней и день недели; рекомендуемый заказ ~${recommendedQty} ${product?.unit ?? "шт"}.`,
+    recommendedQty,
+  };
+}
+
+// ── Delivery failure → Plan B ────────────────────────────────────────────────
+export function simulateDeliveryFailure(orderId: number) {
+  const order = orders.find((o) => o.id === orderId);
+  if (!order) return null;
+  // Mark as delayed / problem
+  order.status = "in_transit";
+  order.notes = (order.notes || "") + " [СРыв: поставщик задержал отгрузку]";
+  order.updatedAt = new Date();
+
+  const failedSupplier = suppliers.find((s) => s.id === order.supplierId);
+  const items = orderItems.filter((i) => i.orderId === orderId);
+  const productIds = items.map((i) => i.productId);
+
+  const originalTotal = parseFloat(order.totalAmount) || 10000;
+  // Alternative suppliers: prefer those with matching products, else any active supplier
+  const alternatives = suppliers
+    .filter((s) => s.id !== order.supplierId && s.isActive)
+    .map((s) => {
+      const sps = supplierProducts.filter(
+        (sp) => sp.supplierId === s.id && (productIds.length === 0 || productIds.includes(sp.productId))
+      );
+      let total = 0;
+      if (sps.length > 0 && items.length > 0) {
+        total = items.reduce((sum, item) => {
+          const sp = sps.find((x) => x.productId === item.productId);
+          const price = sp ? parseFloat(sp.price) : parseFloat(item.price);
+          return sum + price * parseFloat(item.quantity || "0");
+        }, 0);
+      } else {
+        // Fallback estimate: ±10% vs original based on reliability
+        const rel = parseFloat(s.reliabilityScore) || 90;
+        total = originalTotal * (1.12 - rel / 1000);
+      }
+      return {
+        supplierId: s.id,
+        supplierName: s.name,
+        avgDeliveryDays: s.avgDeliveryDays,
+        reliabilityScore: s.reliabilityScore,
+        totalAmount: Math.round(total),
+        deltaVsOriginal: Math.round(total - originalTotal),
+        fasterByDays: parseFloat(failedSupplier?.avgDeliveryDays || "3") - parseFloat(s.avgDeliveryDays),
+        score:
+          parseFloat(s.reliabilityScore) * 0.5 +
+          (5 - parseFloat(s.avgDeliveryDays)) * 10 +
+          (total < originalTotal ? 15 : 0),
+      };
+    })
+    .sort((a: any, b: any) => b.score - a.score) as any[];
+
+  const best = alternatives[0] || null;
+  return {
+    order,
+    failedSupplierName: failedSupplier?.name || "Поставщик",
+    alternatives,
+    best,
+  };
+}
+
+export function switchOrderSupplier(orderId: number, newSupplierId: number) {
+  const order = orders.find((o) => o.id === orderId);
+  if (!order) return null;
+  const alt = suppliers.find((s) => s.id === newSupplierId);
+  if (!alt) return null;
+  order.supplierId = newSupplierId;
+  order.status = "confirmed";
+  order.notes = `Переключено на ${alt.name} (план Б после срыва)`;
+  order.expectedDeliveryDate = new Date(Date.now() + parseFloat(alt.avgDeliveryDays) * 86400000);
+  order.updatedAt = new Date();
+  return order;
+}
+
 export const mockStore = {
   // Products
   getProducts(businessId: number) {
-    return products.filter((p) => p.businessId === businessId).map((p) => ({ ...p }));
+    return getProductsLocated(businessId);
   },
   getProductById(id: number) {
     return products.find((p) => p.id === id) ?? null;
@@ -724,4 +952,17 @@ export const mockStore = {
   },
 };
 
+
+// bind new helpers onto store
+Object.assign(mockStore, {
+  getLocations,
+  getActiveLocationId,
+  setActiveLocationId,
+  getImpactMetrics,
+  getExplainableForecast,
+  simulateDeliveryFailure,
+  switchOrderSupplier,
+});
+
 export default mockStore;
+

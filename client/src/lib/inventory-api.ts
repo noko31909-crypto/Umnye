@@ -86,6 +86,33 @@ export const inventoryApi = {
       return p;
     },
   },
+  locations: {
+    list: () => mockStore.getLocations(),
+    activeId: () => mockStore.getActiveLocationId(),
+    setActive: (id: number) => {
+      mockStore.setActiveLocationId(id);
+      bump();
+    },
+  },
+  impact: {
+    metrics: (businessId: number) => mockStore.getImpactMetrics(businessId),
+  },
+  explain: {
+    forecast: (businessId: number, productId: number) =>
+      mockStore.getExplainableForecast(businessId, productId),
+  },
+  planB: {
+    simulateFailure: (orderId: number) => {
+      const r = mockStore.simulateDeliveryFailure(orderId);
+      bump();
+      return r;
+    },
+    switchSupplier: (orderId: number, supplierId: number) => {
+      const r = mockStore.switchOrderSupplier(orderId, supplierId);
+      bump();
+      return r;
+    },
+  },
 };
 
 /** Hook: re-render on inventory changes and return live data helpers */

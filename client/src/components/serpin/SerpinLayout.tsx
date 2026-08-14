@@ -1,6 +1,7 @@
 import { useState, CSSProperties, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useSimpleAuth } from "@/hooks/useSimpleAuth";
+import { useInventory } from "@/lib/inventory-api";
 import { useIsMobile } from "@/hooks/useMobile";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -74,6 +75,9 @@ export default function SerpinLayout({ children }: SerpinLayoutProps) {
 function InventoryLayoutContent({ children }: { children: React.ReactNode }) {
   const { user } = useSimpleAuth();
   const [location, navigate] = useLocation();
+  const inv = useInventory();
+  const locations = inv.locations.list();
+  const activeLocId = inv.locations.activeId();
   const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === "collapsed";
   const isMobile = useIsMobile();
@@ -162,6 +166,18 @@ function InventoryLayoutContent({ children }: { children: React.ReactNode }) {
             </Button>
           )}
           <div className="flex-1" />
+          <select
+            className="text-xs border border-border rounded-lg px-2 py-1.5 bg-background max-w-[200px] truncate"
+            value={activeLocId}
+            onChange={(e) => inv.locations.setActive(Number(e.target.value))}
+            title="Точка сети"
+          >
+            {locations.map((loc) => (
+              <option key={loc.id} value={loc.id}>
+                {loc.name}
+              </option>
+            ))}
+          </select>
           <span className="text-xs px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 font-medium border border-blue-100">
             Demo Mode
           </span>

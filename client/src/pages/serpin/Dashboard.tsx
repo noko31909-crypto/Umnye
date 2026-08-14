@@ -23,6 +23,7 @@ export default function SerpinDashboard() {
 
   const recommendations = inv.dashboard.recommendations(BUSINESS_ID);
   const recsLoading = false;
+  const impact = inv.impact.metrics(BUSINESS_ID);
 
   const simulateSale = {
     isPending: false,
@@ -87,6 +88,47 @@ export default function SerpinDashboard() {
           1) Симулируйте продажу → 2) AI покажет риск дефицита → 3) Авто-заказ → 4) Сравните поставщиков → 5) Прогноз спроса → 6) Отследите статус в Заказах
         </AlertDescription>
       </Alert>
+
+
+      {/* Impact narrative — jury metric */}
+      <Card className="border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-blue-50 overflow-hidden">
+        <CardContent className="pt-6 pb-6">
+          <div className="flex flex-col lg:flex-row lg:items-center gap-6">
+            <div className="flex-1">
+              <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700 mb-1">Влияние платформы · этот месяц</p>
+              <p className="text-4xl md:text-5xl font-bold text-emerald-800 tabular-nums">
+                {Number(impact?.savingsMonth ?? 0).toLocaleString()} ₸
+              </p>
+              <p className="text-sm text-emerald-800/80 mt-2">
+                сэкономлено vs сценарий «без платформы» (авральные закупки + потери от дефицита)
+              </p>
+              <div className="flex flex-wrap gap-3 mt-4">
+                <Badge className="bg-emerald-600 hover:bg-emerald-600 text-white">
+                  {impact?.deficitsPrevented ?? 0} дефицитов предотвращено
+                </Badge>
+                <Badge variant="outline" className="border-emerald-300 text-emerald-800">
+                  ~{impact?.wasteAvoidedKg ?? 0} усл. ед. потерь избежано
+                </Badge>
+                <Badge variant="outline" className="border-blue-200 text-blue-800">
+                  {impact?.autoOrdersCount ?? 0} автозаказов
+                </Badge>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3 min-w-[240px]">
+              <div className="rounded-xl bg-white/80 border border-red-100 p-3">
+                <p className="text-[10px] uppercase text-muted-foreground">Без Jaqyn</p>
+                <p className="text-lg font-bold text-red-600">{Number(impact?.withoutPlatformCost ?? 0).toLocaleString()} ₸</p>
+                <p className="text-[10px] text-muted-foreground">издержки / месяц</p>
+              </div>
+              <div className="rounded-xl bg-white/80 border border-emerald-200 p-3">
+                <p className="text-[10px] uppercase text-muted-foreground">С Jaqyn</p>
+                <p className="text-lg font-bold text-emerald-700">{Number(impact?.withPlatformCost ?? 0).toLocaleString()} ₸</p>
+                <p className="text-[10px] text-muted-foreground">издержки / месяц</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

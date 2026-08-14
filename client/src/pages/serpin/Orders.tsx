@@ -25,6 +25,7 @@ const statusFlow = ["pending", "confirmed", "collecting", "in_transit", "deliver
 
 export default function SerpinOrders() {
   const [statusFilter, setStatusFilter] = useState("all");
+  const [planB, setPlanB] = useState<any>(null);
 
   const inv = useInventory();
   const orders = inv.orders.list(BUSINESS_ID);
@@ -45,6 +46,22 @@ export default function SerpinOrders() {
     statusFilter === "all" || o.status === statusFilter
   );
 
+  const handleSimulateFailure = (orderId: number) => {
+    const result = inv.planB.simulateFailure(orderId);
+    if (!result) {
+      toast.error("Не удалось симулировать срыв");
+      return;
+    }
+    setPlanB(result);
+    toast.error(`Срыв: ${result.failedSupplierName} задержал поставку`);
+  };
+
+  const handleSwitchSupplier = (orderId: number, supplierId: number) => {
+    inv.planB.switchSupplier(orderId, supplierId);
+    setPlanB(null);
+    toast.success("Заказ переключён на альтернативного поставщика (план Б)");
+  };
+
   const getNextStatus = (currentStatus: string): string | null => {
     const currentIndex = statusFlow.indexOf(currentStatus);
     if (currentIndex >= 0 && currentIndex < statusFlow.length - 1) {
@@ -58,7 +75,7 @@ export default function SerpinOrders() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Заказы и доставки</h1>
-          <p className="text-muted-foreground mt-1">Отслеживание статусов поставок</p>
+          <p className="text-muted-foreground mt-1">Отслеживание статусов · демо: «Симулировать срыв» → план Б в 1 клик</p>
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-[200px]">
@@ -74,6 +91,56 @@ export default function SerpinOrders() {
           </SelectContent>
         </Select>
       </div>
+
+
+      {planB && (
+        <Card className="border-orange-300 bg-orange-50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base text-orange-900 flex items-center gap-2">
+              <AlertCircle className="w-5 h-5" />
+              Срыв поставки → план Б
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-orange-900">
+              <strong>{planB.failedSupplierName}</strong> сорвал сроки по заказу #{planB.order?.id}.
+              Система подобрала альтернативы по цене, сроку и надёжности.
+            </p>
+            <div className="grid gap-2 md:grid-cols-2">
+              {(planB.alternatives || []).slice(0, 4).map((alt: any) => (
+                <div
+                  key={alt.supplierId}
+                  className={`rounded-lg border bg-white p-3 ${planB.best?.supplierId === alt.supplierId ? "border-emerald-400 ring-1 ring-emerald-200" : "border-border"}`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="font-medium text-sm">{alt.supplierName}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {alt.avgDeliveryDays} дн. · надёжность {alt.reliabilityScore}%
+                      </p>
+                      <p className="text-sm mt-1">
+                        {Number(alt.totalAmount).toLocaleString()} ₸
+                        {alt.deltaVsOriginal !== 0 && (
+                          <span className={alt.deltaVsOriginal > 0 ? "text-red-600 text-xs ml-1" : "text-emerald-600 text-xs ml-1"}>
+                            ({alt.deltaVsOriginal > 0 ? "+" : ""}{alt.deltaVsOriginal.toLocaleString()} ₸)
+                          </span>
+                        )}
+                      </p>
+                      {planB.best?.supplierId === alt.supplierId && (
+                        <Badge className="mt-1 bg-emerald-600 text-white text-[10px]">AI рекомендует</Badge>
+                      )}
+                    </div>
+                    <Button size="sm" onClick={() => handleSwitchSupplier(planB.order.id, alt.supplierId)}>
+                      Переключить
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <Button variant="ghost" size="sm" onClick={() => setPlanB(null)}>Скрыть</Button>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardContent className="pt-6">
@@ -143,6 +210,16 @@ export default function SerpinOrders() {
                       >
                         <Truck className="w-3 h-3 mr-1" />
                         {statusConfig[nextStatus]?.label}
+                      </Button>
+                    )}
+                    {order.status !== "delivered" && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="border-orange-300 text-orange-800"
+                        onClick={() => handleSimulateFailure(order.id)}
+                      >
+                        Срыв → план Б
                       </Button>
                     )}
                   </div>
