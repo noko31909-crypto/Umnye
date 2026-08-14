@@ -1,46 +1,22 @@
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
-import { appRouter } from "../../server/routers";
-import { sdk } from "../../server/_core/sdk";
-import * as db from "../../server/db";
-import { COOKIE_NAME } from "../../shared/const";
-import type { TrpcContext } from "../../server/_core/context";
+import { inventoryAppRouter } from "../../server/inventory-router";
 
-const handler = (req: Request) => {
-  const getUser = async () => {
-    try {
-      const cookieHeader = req.headers.get("cookie") || "";
-      const cookies = new Map<string, string>();
-      cookieHeader.split(";").forEach((cookie) => {
-        const [key, ...rest] = cookie.trim().split("=");
-        cookies.set(key, rest.join("="));
-      });
-      const sessionToken = cookies.get(COOKIE_NAME);
-      if (sessionToken) {
-        const session = await sdk.verifySession(sessionToken);
-        if (session) {
-          const user = await db.getUserByOpenId(session.openId);
-          return user || null;
-        }
-      }
-    } catch {
-      // Auth is optional for public procedures
-    }
-    return null;
-  };
-
-  return fetchRequestHandler({
+/**
+ * Vercel serverless tRPC handler.
+ * Uses lightweight inventory router (mock data) so the hackathon demo
+ * works without MySQL/OAuth native deps on serverless.
+ * Login/marketing pages remain client-side as before.
+ */
+const handler = (req: Request) =>
+  fetchRequestHandler({
     endpoint: "/api/trpc",
     req,
-    router: appRouter,
-    createContext: async (): Promise<TrpcContext> => {
-      const user = await getUser();
-      return {
-        req: req as any,
-        res: {} as any,
-        user,
-      };
-    },
+    router: inventoryAppRouter,
+    createContext: async () => ({
+      req: req as any,
+      res: {} as any,
+      user: null,
+    }),
   });
-};
 
 export { handler as GET, handler as POST };
