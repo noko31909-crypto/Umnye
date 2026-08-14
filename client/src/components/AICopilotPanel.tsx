@@ -63,6 +63,32 @@ interface AICopilotPanelProps {
   };
 }
 
+
+/** Demo AI replies when server LLM is unavailable (Vercel serverless / missing keys). */
+function buildDemoReply(userText: string, ctx?: AICopilotPanelProps["businessContext"]): string {
+  const t = userText.toLowerCase();
+  const biz = ctx?.businessName || "вашего бизнеса";
+  const type = ctx?.businessType || "локальный бизнес";
+
+  if (/quiet|тихие|slow|слабые|off.?peak|непроходимые/i.test(t)) {
+    return `**Анализ тихих часов для ${biz}**\n\n1. **10:00–12:00 и 15:00–17:00** обычно самые спокойные.\n2. Предложите **«счастливые часы»**: −15% на напитки / комбо в эти окна.\n3. Канал: SMS + WhatsApp за 1 час до слота.\n4. Ожидаемый эффект: +12–18% трафика в тихие часы.\n\n_Демо-режим: ответы на основе шаблонов Jaqyn AI (серверный LLM сейчас недоступен)._`;
+  }
+  if (/offer|акци|промо|скид|generate|сгенерир/i.test(t)) {
+    return `**Промо-предложение**\n\n🎁 **«Вернись за бонусом»** для неактивных клиентов (14+ дней без визита).\n- Оффер: −20% на следующий заказ + бесплатный апселл.\n- Канал: WhatsApp / SMS.\n- Время: будни 11:00–13:00.\n- Ожидаемая конверсия: 8–12%.\n\n_Демо-режим Jaqyn AI._`;
+  }
+  if (/traffic|трафик|predict|прогноз|посещаем/i.test(t)) {
+    return `**Прогноз трафика на сегодня**\n\n- Пик: **12:00–14:00** и **18:00–20:00**\n- Спад: **15:00–17:00**\n- Рекомендация: усилить смену в пик, в спад — push «комбо дня».\n\n_Демо-режим Jaqyn AI._`;
+  }
+  if (/customer|клиент|health|удержан|retention|at.?risk/i.test(t)) {
+    return `**Здоровье клиентской базы**\n\n- VIP: удерживайте персональными офферами.\n- At-risk (нет визитов 14–30 дней): реактивация SMS + −15%.\n- Новые: программа лояльности после 2-го визита.\n\n_Демо-режим Jaqyn AI._`;
+  }
+  if (/stock|запас|инвентар|order|заказ|supplier|поставщик|milk|молок/i.test(t)) {
+    return `**Инвентарь / автозаказ**\n\n1. Откройте **Инвентарь** → проверьте критические позиции.\n2. Нажмите **Симулировать продажу (Молоко)** на панели запасов — AI обновит риск дефицита.\n3. **Авто-заказ** → выберите товары → подтвердите → статус в **Заказах**.\n4. **Сравнение поставщиков** поможет выбрать цену и срок доставки.\n\n_Демо-режим: модуль запасов работает локально._`;
+  }
+  return `Я **Jaqyn AI** (демо-режим) для **${type}** «${biz}».\n\nМогу помочь с:\n- тихими часами и кампаниями\n- промо-офферами\n- прогнозом трафика\n- здоровьем клиентов\n- инвентарём и автозаказом\n\nНапишите, что нужно — или выберите быстрое действие выше.\n\n_Серверный LLM сейчас недоступен на хостинге; ответы генерируются локально для демо._`;
+}
+
+
 export default function AICopilotPanel({ businessContext }: AICopilotPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -79,16 +105,8 @@ export default function AICopilotPanel({ businessContext }: AICopilotPanelProps)
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const chatMutation = trpc.ai.chat.useMutation({
-    onError: () => {
-      toast.error("Jaqyn AI encountered an error. Please try again.");
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.isLoading
-            ? { ...m, content: "I encountered an error. Please try again.", isLoading: false }
-            : m
-        )
-      );
-    },
+    // Errors are handled in sendMessage with a local demo fallback
+    onError: () => {},
   });
 
   const scrollToBottom = useCallback(() => {
@@ -120,7 +138,12 @@ export default function AICopilotPanel({ businessContext }: AICopilotPanelProps)
           prev.map((m) => (m.isLoading ? { ...m, content: result.content, isLoading: false } : m))
         );
       } catch {
-        // handled by onError
+        // Server LLM unavailable (common on Vercel without forge keys) — local demo reply
+        await new Promise((r) => setTimeout(r, 600));
+        const reply = buildDemoReply(content, businessContext);
+        setMessages((prev) =>
+          prev.map((m) => (m.isLoading ? { ...m, content: reply, isLoading: false } : m))
+        );
       }
     },
     [messages, chatMutation, businessContext]
