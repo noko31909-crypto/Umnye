@@ -17,7 +17,7 @@ const statusConfig: Record<string, { label: string; color: string; icon: typeof 
   pending: { label: "Ожидает", color: "bg-gray-100 text-gray-700", icon: Clock },
   confirmed: { label: "Подтверждён", color: "bg-blue-100 text-blue-700", icon: CheckCircle },
   collecting: { label: "Собирается", color: "bg-yellow-100 text-yellow-700", icon: Package },
-  in_transit: { label: "В пути", color: "bg-purple-100 text-purple-700", icon: Truck },
+  in_transit: { label: "В пути", color: "bg-blue-100 text-blue-700", icon: Truck },
   delivered: { label: "Доставлен", color: "bg-green-100 text-green-700", icon: CheckCircle },
 };
 
@@ -56,8 +56,8 @@ export default function SerpinOrders() {
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Заказы и доставки</h1>
-          <p className="text-gray-500 mt-1">Отслеживание статусов поставок</p>
+          <h1 className="text-3xl font-bold text-foreground">Заказы и доставки</h1>
+          <p className="text-muted-foreground mt-1">Отслеживание статусов поставок</p>
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-[200px]">
@@ -77,9 +77,9 @@ export default function SerpinOrders() {
       <Card>
         <CardContent className="pt-6">
           {isLoading ? (
-            <p className="text-gray-400 text-center py-8">Загрузка...</p>
+            <p className="text-muted-foreground text-center py-8">Загрузка...</p>
           ) : filteredOrders?.length === 0 ? (
-            <div className="text-center py-8 text-gray-400">
+            <div className="text-center py-8 text-muted-foreground">
               <ShoppingCart className="w-12 h-12 mx-auto mb-4 opacity-50" />
               <p>Заказов не найдено</p>
             </div>
@@ -97,7 +97,7 @@ export default function SerpinOrders() {
                 return (
                   <div
                     key={order.id}
-                    className="flex items-center gap-4 p-4 rounded-lg border hover:bg-gray-50 transition-colors"
+                    className="flex items-center gap-4 p-4 rounded-lg border hover:bg-muted/50 transition-colors"
                   >
                     {/* Status Icon */}
                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${config.color}`}>
@@ -109,16 +109,16 @@ export default function SerpinOrders() {
                       <div className="flex items-center gap-2">
                         <h3 className="font-semibold">Заказ #{order.id}</h3>
                         {order.isAutoOrder && (
-                          <Badge variant="secondary" className="bg-purple-100 text-purple-700">
+                          <Badge variant="secondary" className="bg-blue-100 text-blue-700">
                             <Bot className="w-3 h-3 mr-1" />
                             Авто-заказ
                           </Badge>
                         )}
                       </div>
-                      <p className="text-sm text-gray-500 mt-1">
+                      <p className="text-sm text-muted-foreground mt-1">
                         Поставщик: {supplierMap.get(order.supplierId) ?? "—"}
                       </p>
-                      <div className="flex items-center gap-4 mt-1 text-xs text-gray-400">
+                      <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <Calendar className="w-3 h-3" /> Доставка: {deliveryDate}
                         </span>

@@ -13,6 +13,7 @@ import {
   AlertTriangle, CheckCircle, XCircle, MinusCircle
 } from "lucide-react";
 import { toast } from "sonner";
+import { useLocation } from "wouter";
 
 const BUSINESS_ID = 1;
 
@@ -24,6 +25,7 @@ const statusConfig = {
 };
 
 export default function SerpinInventory() {
+  const [, navigate] = useLocation();
   const [search, setSearch] = useState("");
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [newProduct, setNewProduct] = useState({
@@ -71,8 +73,8 @@ export default function SerpinInventory() {
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Инвентарь</h1>
-          <p className="text-gray-500 mt-1">Управление запасами товаров</p>
+          <h1 className="text-3xl font-bold text-foreground">Инвентарь</h1>
+          <p className="text-muted-foreground mt-1">Управление запасами товаров</p>
         </div>
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
           <DialogTrigger asChild>
@@ -165,9 +167,9 @@ export default function SerpinInventory() {
       <Card>
         <CardContent className="pt-6">
           {isLoading ? (
-            <p className="text-gray-400 text-center py-8">Загрузка...</p>
+            <p className="text-muted-foreground text-center py-8">Загрузка...</p>
           ) : filteredProducts?.length === 0 ? (
-            <div className="text-center py-8 text-gray-400">
+            <div className="text-center py-8 text-muted-foreground">
               <Package className="w-12 h-12 mx-auto mb-4 opacity-50" />
               <p>Товары не найдены</p>
             </div>
@@ -198,11 +200,11 @@ export default function SerpinInventory() {
                     <TableRow key={product.id}>
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
-                          <Package className="w-4 h-4 text-gray-400" />
+                          <Package className="w-4 h-4 text-muted-foreground" />
                           {product.name}
                         </div>
                       </TableCell>
-                      <TableCell className="text-gray-500">{product.category}</TableCell>
+                      <TableCell className="text-muted-foreground">{product.category}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Button
@@ -227,7 +229,7 @@ export default function SerpinInventory() {
                       </TableCell>
                       <TableCell>{avgSales} {product.unit}/день</TableCell>
                       <TableCell>
-                        <span className={daysRemaining <= 2 ? "text-red-600 font-bold" : daysRemaining <= 5 ? "text-orange-600" : "text-gray-600"}>
+                        <span className={daysRemaining <= 2 ? "text-red-600 font-bold" : daysRemaining <= 5 ? "text-orange-600" : "text-muted-foreground"}>
                           {daysRemaining >= 999 ? "∞" : `${daysRemaining} дн.`}
                         </span>
                       </TableCell>
@@ -239,6 +241,15 @@ export default function SerpinInventory() {
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1">
+                          {(product.status === "low_stock" || product.status === "critical" || product.status === "out_of_stock") && (
+                            <Button
+                              variant="outline" size="sm" className="h-8 text-xs"
+                              onClick={() => navigate("/serpin/auto-order")}
+                            >
+                              <Zap className="w-3 h-3 mr-1" />
+                              Автозаказ
+                            </Button>
+                          )}
                           <Button
                             variant="ghost" size="icon" className="h-8 w-8"
                             onClick={() => deleteProductMutation.mutate({ id: product.id })}

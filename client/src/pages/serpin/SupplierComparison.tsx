@@ -54,8 +54,8 @@ export default function SerpinSupplierComparison() {
   return (
     <div className="space-y-6 p-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Сравнение поставщиков</h1>
-        <p className="text-gray-500 mt-1">AI анализирует и выбирает лучшего поставщика</p>
+        <h1 className="text-3xl font-bold text-foreground">Сравнение поставщиков</h1>
+        <p className="text-muted-foreground mt-1">AI анализирует и выбирает лучшего поставщика</p>
       </div>
 
       {/* Product Selection */}
@@ -111,9 +111,9 @@ export default function SerpinSupplierComparison() {
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <p className="text-gray-400 text-center py-8">Анализ AI...</p>
+              <p className="text-muted-foreground text-center py-8">Анализ AI...</p>
             ) : !comparisonData?.suppliers?.length ? (
-              <p className="text-gray-400 text-center py-8">Нет поставщиков для этого товара</p>
+              <p className="text-muted-foreground text-center py-8">Нет поставщиков для этого товара</p>
             ) : (
               <Table>
                 <TableHeader>

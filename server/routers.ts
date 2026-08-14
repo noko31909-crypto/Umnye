@@ -172,9 +172,11 @@ export const ordersRouter = router({
     }))
     .mutation(async ({ input }) => {
       const { items, ...orderData } = input;
-      const result = await db.createOrder(orderData);
-      const orderId = result?.insertId;
-      if (orderId) {
+      // Pass items so mock store can create order + items atomically
+      const result = await db.createOrder({ ...orderData, items });
+      const orderId = result?.orderId ?? result?.insertId;
+      // Real DB path may still need separate insert
+      if (orderId && result && !result.orderId) {
         await db.createOrderItems(items.map(item => ({
           orderId,
           productId: item.productId,
@@ -208,7 +210,7 @@ export const salesRouter = router({
       revenue: z.string(),
     }))
     .mutation(async ({ input }) => {
-      await db.createSalesHistory(input);
+      await db.createSale(input);
       return { success: true };
     }),
 });
@@ -243,54 +245,18 @@ export const forecastRouter = router({
       forecastDays: z.number().default(14),
     }))
     .query(async ({ input }) => {
-      // Get historical sales for the past 30 days
-      const history = await db.getSalesHistory(input.businessId, input.productId, 30);
+      const data = await db.getForecast(input.businessId, input.productId);
+      return data;
+    }),
+});
 
-      // Calculate average daily sales
-      const dailyMap = new Map<string, number>();
-      for (const record of history) {
-        const dateStr = new Date(record.saleDate).toISOString().split("T")[0];
-        const current = dailyMap.get(dateStr) ?? 0;
-        dailyMap.set(dateStr, current + Number(record.quantity));
-      }
-
-      // Calculate weighted average (recent days weighted more)
-      const sortedDates = Array.from(dailyMap.keys()).sort();
-      let totalQty = 0;
-      let totalWeight = 0;
-      const daysWithData = sortedDates.length;
-
-      sortedDates.forEach((dateStr, index) => {
-        const weight = (index + 1) / daysWithData; // Recent days get higher weight
-        totalQty += dailyMap.get(dateStr)! * weight;
-        totalWeight += weight;
-      });
-
-      const avgDailySales = totalWeight > 0 ? totalQty / totalWeight : 0;
-
-      // Generate forecast
-      const forecast = [];
-      const now = new Date();
-      for (let i = 1; i <= input.forecastDays; i++) {
-        const forecastDate = new Date(now);
-        forecastDate.setDate(forecastDate.getDate() + i);
-        const dateStr = forecastDate.toLocaleDateString("ru-KZ", { day: "numeric", month: "short" });
-
-        // Add slight trend based on recent performance
-        const trend = avgDailySales > 0 ? (0.95 + Math.random() * 0.1) : 0;
-        const predictedQty = Math.max(0, avgDailySales * trend);
-
-        forecast.push({
-          date: dateStr,
-          predictedQty: String(predictedQty.toFixed(1)),
-        });
-      }
-
-      return {
-        historical: history,
-        forecast,
-        avgDailySales,
-      };
+// --- Demo helpers ---
+export const demoRouter = router({
+  simulateSale: publicProcedure
+    .input(z.object({ productId: z.number(), qty: z.number().default(5) }))
+    .mutation(async ({ input }) => {
+      const result = await db.simulateSale(input.productId, input.qty);
+      return { success: true, product: result };
     }),
 });
 
@@ -315,6 +281,7 @@ export const serpinRouter = router({
   forecast: forecastRouter,
   profile: profileRouter,
   dashboard: dashboardRouter,
+  demo: demoRouter,
 });
 
 // ============================================================================

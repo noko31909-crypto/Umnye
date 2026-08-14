@@ -9,10 +9,12 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Truck, Plus, Phone, Mail, Clock, Star, CheckCircle, XCircle } from "lucide-react";
 import { toast } from "sonner";
+import { useLocation } from "wouter";
 
 const BUSINESS_ID = 1;
 
 export default function SerpinSuppliers() {
+  const [, navigate] = useLocation();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [newSupplier, setNewSupplier] = useState({
     name: "", category: "", contactPerson: "", phone: "", email: "",
@@ -38,10 +40,14 @@ export default function SerpinSuppliers() {
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Поставщики</h1>
-          <p className="text-gray-500 mt-1">Управление поставщиками и сравнение</p>
+          <h1 className="text-3xl font-bold text-foreground">Поставщики</h1>
+          <p className="text-muted-foreground mt-1">Управление поставщиками и сравнение</p>
         </div>
-        <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => navigate("/serpin/comparison")}>
+            Сравнить
+          </Button>
+          <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="w-4 h-4 mr-1" />
@@ -90,23 +96,24 @@ export default function SerpinSuppliers() {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Supplier Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {isLoading ? (
-          <p className="text-gray-400 col-span-full text-center py-8">Загрузка...</p>
+          <p className="text-muted-foreground col-span-full text-center py-8">Загрузка...</p>
         ) : suppliers?.map((supplier) => (
           <Card key={supplier.id} className="hover:shadow-md transition-shadow">
             <CardContent className="pt-6">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
-                    <Truck className="w-5 h-5 text-purple-600" />
+                  <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                    <Truck className="w-5 h-5 text-blue-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">{supplier.name}</h3>
-                    <p className="text-sm text-gray-500">{supplier.category}</p>
+                    <h3 className="font-semibold text-foreground">{supplier.name}</h3>
+                    <p className="text-sm text-muted-foreground">{supplier.category}</p>
                   </div>
                 </div>
                 <Badge variant={supplier.isActive ? "default" : "secondary"} className={supplier.isActive ? "bg-green-100 text-green-700" : ""}>
@@ -117,17 +124,17 @@ export default function SerpinSuppliers() {
 
               <div className="space-y-2 mb-4">
                 {supplier.contactPerson && (
-                  <p className="text-sm text-gray-600 flex items-center gap-2">
+                  <p className="text-sm text-muted-foreground flex items-center gap-2">
                     <Phone className="w-3.5 h-3.5" /> {supplier.contactPerson}
                   </p>
                 )}
                 {supplier.phone && (
-                  <p className="text-sm text-gray-600 flex items-center gap-2">
+                  <p className="text-sm text-muted-foreground flex items-center gap-2">
                     <Phone className="w-3.5 h-3.5" /> {supplier.phone}
                   </p>
                 )}
                 {supplier.email && (
-                  <p className="text-sm text-gray-600 flex items-center gap-2">
+                  <p className="text-sm text-muted-foreground flex items-center gap-2">
                     <Mail className="w-3.5 h-3.5" /> {supplier.email}
                   </p>
                 )}
@@ -135,20 +142,20 @@ export default function SerpinSuppliers() {
 
               <div className="grid grid-cols-2 gap-4 pt-3 border-t">
                 <div className="text-center">
-                  <p className="text-lg font-bold text-gray-900">{supplier.avgDeliveryDays}</p>
-                  <p className="text-xs text-gray-500 flex items-center justify-center gap-1">
+                  <p className="text-lg font-bold text-foreground">{supplier.avgDeliveryDays}</p>
+                  <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
                     <Clock className="w-3 h-3" /> дня доставки
                   </p>
                 </div>
                 <div className="text-center">
                   <p className="text-lg font-bold text-green-600">{supplier.reliabilityScore}%</p>
-                  <p className="text-xs text-gray-500 flex items-center justify-center gap-1">
+                  <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
                     <Star className="w-3 h-3" /> надёжность
                   </p>
                 </div>
               </div>
 
-              <div className="mt-3 pt-3 border-t flex justify-between text-xs text-gray-400">
+              <div className="mt-3 pt-3 border-t flex justify-between text-xs text-muted-foreground">
                 <span>Заказов: {supplier.totalOrders}</span>
                 <span>Опозданий: {supplier.lateDeliveryCount}</span>
               </div>

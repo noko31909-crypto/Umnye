@@ -30,6 +30,7 @@ import {
   Wrench,
   Settings,
   Shield,
+  Package,
   LogOut,
   PanelLeft,
   Sparkles,
@@ -45,6 +46,7 @@ const menuItems = [
   { icon: Users, label: "Customers", path: "/customers" },
   { icon: BarChart3, label: "Analytics", path: "/analytics" },
   { icon: Wrench, label: "Tools", path: "/tools" },
+  { icon: Package, label: "Inventory", path: "/serpin" },
   { icon: Settings, label: "Settings", path: "/settings" },
 ];
 

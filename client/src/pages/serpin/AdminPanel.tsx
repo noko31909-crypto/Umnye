@@ -38,10 +38,10 @@ export default function SerpinAdminPanel() {
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Админ-панель</h1>
-          <p className="text-gray-500 mt-1">Управление продуктами, поставщиками и настройками</p>
+          <h1 className="text-3xl font-bold text-foreground">Админ-панель</h1>
+          <p className="text-muted-foreground mt-1">Управление продуктами, поставщиками и настройками</p>
         </div>
-        <Badge className="bg-purple-100 text-purple-700">
+        <Badge className="bg-blue-100 text-blue-700">
           <Bot className="w-3 h-3 mr-1" />
           AI Active
         </Badge>
@@ -159,25 +159,25 @@ export default function SerpinAdminPanel() {
                 <div className="space-y-2">
                   <Label>Порог срабатывания авто-заказа</Label>
                   <Input type="number" step="0.1" defaultValue="1.5" />
-                  <p className="text-xs text-gray-400">Заказ создаётся когда остаток ≤ мин. остаток × порог</p>
+                  <p className="text-xs text-muted-foreground">Заказ создаётся когда остаток ≤ мин. остаток × порог</p>
                 </div>
                 <div className="space-y-2">
                   <Label>Множитель количества заказа</Label>
                   <Input type="number" step="0.1" defaultValue="2" />
-                  <p className="text-xs text-gray-400">Заказываемое количество = мин. остаток × множитель</p>
+                  <p className="text-xs text-muted-foreground">Заказываемое количество = мин. остаток × множитель</p>
                 </div>
                 <div className="space-y-2">
                   <Label>Макс. дней до критичного остатка</Label>
                   <Input type="number" defaultValue="3" />
-                  <p className="text-xs text-gray-400">AI предупреждает за N дней до исчерпания</p>
+                  <p className="text-xs text-muted-foreground">AI предупреждает за N дней до исчерпания</p>
                 </div>
                 <div className="space-y-2">
                   <Label>Предпочтительный приоритет при выборе поставщика</Label>
                   <Input defaultValue="price" placeholder="price, reliability, delivery" />
-                  <p className="text-xs text-gray-400">price = цена, reliability = надёжность, delivery = скорость</p>
+                  <p className="text-xs text-muted-foreground">price = цена, reliability = надёжность, delivery = скорость</p>
                 </div>
               </div>
-              <Button className="bg-purple-600 hover:bg-purple-700">
+              <Button className="bg-blue-600 hover:bg-blue-700">
                 Сохранить правила
               </Button>
             </CardContent>
@@ -191,21 +191,21 @@ export default function SerpinAdminPanel() {
               <CardContent className="pt-6 text-center">
                 <Database className="w-8 h-8 text-blue-500 mx-auto mb-3" />
                 <p className="text-3xl font-bold">{products?.length ?? 0}</p>
-                <p className="text-sm text-gray-500">Товаров</p>
+                <p className="text-sm text-muted-foreground">Товаров</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-6 text-center">
-                <Truck className="w-8 h-8 text-purple-500 mx-auto mb-3" />
+                <Truck className="w-8 h-8 text-blue-500 mx-auto mb-3" />
                 <p className="text-3xl font-bold">{suppliers?.length ?? 0}</p>
-                <p className="text-sm text-gray-500">Поставщиков</p>
+                <p className="text-sm text-muted-foreground">Поставщиков</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-6 text-center">
                 <Activity className="w-8 h-8 text-green-500 mx-auto mb-3" />
                 <p className="text-3xl font-bold">{orders?.length ?? 0}</p>
-                <p className="text-sm text-gray-500">Заказов</p>
+                <p className="text-sm text-muted-foreground">Заказов</p>
               </CardContent>
             </Card>
           </div>

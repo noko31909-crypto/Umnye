@@ -111,12 +111,17 @@ export default function SerpinAutoOrder() {
             <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
               <CheckCircle className="w-8 h-8 text-green-600" />
             </div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Заказ отправлен!</h2>
-            <p className="text-gray-500 mb-2">Заказ #{createdOrderId} успешно создан</p>
-            <p className="text-sm text-gray-400 mb-6">Поставщик получит уведомление. Ожидаемая доставка: 2-3 дня.</p>
-            <div className="flex gap-3 justify-center">
-              <Button onClick={() => { setStep("select"); setSelectedProducts([]); }}>
+            <h2 className="text-xl font-bold text-foreground mb-2">Заказ отправлен поставщику!</h2>
+            <p className="text-lg font-semibold text-blue-700 mb-1">Заказ #{createdOrderId}</p>
+            <p className="text-sm text-muted-foreground mb-6">
+              Статус: <span className="font-medium text-green-600">Подтверждён</span> → Собирается → В пути → Доставлен
+            </p>
+            <div className="flex gap-3 justify-center flex-wrap">
+              <Button variant="outline" onClick={() => { setStep("select"); setSelectedProducts([]); setCreatedOrderId(null); }}>
                 Новый заказ
+              </Button>
+              <Button onClick={() => window.location.href = "/serpin/orders"}>
+                Смотреть в заказах
               </Button>
             </div>
           </CardContent>
@@ -128,21 +133,21 @@ export default function SerpinAutoOrder() {
   return (
     <div className="space-y-6 p-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Авто-заказ</h1>
-        <p className="text-gray-500 mt-1">AI определил товары, которые нужно заказать</p>
+        <h1 className="text-3xl font-bold text-foreground">Авто-заказ</h1>
+        <p className="text-muted-foreground mt-1">AI определил товары, которые нужно заказать</p>
       </div>
 
       {/* Step indicator */}
       <div className="flex items-center gap-4 text-sm">
-        <div className={`flex items-center gap-2 ${step === "select" ? "text-purple-600 font-medium" : "text-gray-400"}`}>
+        <div className={`flex items-center gap-2 ${step === "select" ? "text-blue-600 font-medium" : "text-muted-foreground"}`}>
           <Zap className="w-4 h-4" /> 1. Выберите товары
         </div>
         <ArrowRight className="w-4 h-4 text-gray-300" />
-        <div className={`flex items-center gap-2 ${step === "review" ? "text-purple-600 font-medium" : "text-gray-400"}`}>
+        <div className={`flex items-center gap-2 ${step === "review" ? "text-blue-600 font-medium" : "text-muted-foreground"}`}>
           <Package className="w-4 h-4" /> 2. Подтвердите
         </div>
         <ArrowRight className="w-4 h-4 text-gray-300" />
-        <div className={`flex items-center gap-2 ${step === "confirming" ? "text-purple-600 font-medium" : "text-gray-400"}`}>
+        <div className={`flex items-center gap-2 ${step === "confirming" ? "text-blue-600 font-medium" : "text-muted-foreground"}`}>
           <Truck className="w-4 h-4" /> 3. Отправлено
         </div>
       </div>
@@ -150,15 +155,15 @@ export default function SerpinAutoOrder() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Zap className="w-5 h-5 text-purple-600" />
+            <Zap className="w-5 h-5 text-blue-600" />
             Рекомендуемые к заказу ({needsOrder.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
           {productsLoading || suppliersLoading ? (
-            <p className="text-gray-400 text-center py-8">Загрузка...</p>
+            <p className="text-muted-foreground text-center py-8">Загрузка...</p>
           ) : needsOrder.length === 0 ? (
-            <div className="text-center py-8 text-gray-400">
+            <div className="text-center py-8 text-muted-foreground">
               <CheckCircle className="w-12 h-12 mx-auto mb-4 text-green-500" />
               <p>Все товары в достаточном количестве. AI не нашёл необходимости в заказе.</p>
             </div>
@@ -181,7 +186,7 @@ export default function SerpinAutoOrder() {
                     Number(product.minStock)
                   );
                   return (
-                    <TableRow key={product.id} className="cursor-pointer hover:bg-gray-50"
+                    <TableRow key={product.id} className="cursor-pointer hover:bg-muted/50"
                       onClick={() => toggleProduct(product.id)}>
                       <TableCell>
                         <Checkbox checked={selectedProducts.includes(product.id)} />
@@ -208,7 +213,7 @@ export default function SerpinAutoOrder() {
           {needsOrder.length > 0 && (
             <div className="flex items-center justify-between mt-6 pt-4 border-t">
               <div>
-                <p className="text-sm text-gray-500">Выбрано: {selectedProducts.length} товаров</p>
+                <p className="text-sm text-muted-foreground">Выбрано: {selectedProducts.length} товаров</p>
                 <p className="text-lg font-bold">Итого: {calculateTotal().toLocaleString()} ₸</p>
               </div>
               <div className="flex gap-3">
@@ -221,7 +226,7 @@ export default function SerpinAutoOrder() {
                 <Button
                   onClick={handleCreateOrder}
                   disabled={selectedProducts.length === 0 || createOrderMutation.isPending}
-                  className="bg-purple-600 hover:bg-purple-700"
+                  className="bg-blue-600 hover:bg-blue-700 shadow-sm"
                 >
                   {createOrderMutation.isPending ? (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />

@@ -54,8 +54,8 @@ export default function SerpinBusinessProfile() {
   return (
     <div className="space-y-6 p-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Профиль бизнеса</h1>
-        <p className="text-gray-500 mt-1">Настройки вашего бизнеса для AI рекомендаций</p>
+        <h1 className="text-3xl font-bold text-foreground">Профиль бизнеса</h1>
+        <p className="text-muted-foreground mt-1">Настройки вашего бизнеса для AI рекомендаций</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -130,7 +130,7 @@ export default function SerpinBusinessProfile() {
                 onChange={(e) => setFormData({ ...formData, autoOrderThreshold: e.target.value })}
                 placeholder="1.5"
               />
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-muted-foreground">
                 AI закажет когда остаток ≤ мин. остаток × {formData.autoOrderThreshold}
               </p>
             </div>
@@ -144,7 +144,7 @@ export default function SerpinBusinessProfile() {
                 min={1}
                 max={14}
               />
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-muted-foreground">
                 AI будет выбирать поставщиков с доставкой ≤ {formData.preferredDeliveryDays} дн.
               </p>
             </div>
@@ -157,7 +157,7 @@ export default function SerpinBusinessProfile() {
         <Button
           onClick={() => saveMutation.mutate({ userId, ...formData, businessType: formData.businessType as "coffee_shop" | "store" | "pharmacy" | "bakery" | "restaurant" | "other" })}
           disabled={saveMutation.isPending}
-          className="bg-purple-600 hover:bg-purple-700"
+          className="bg-blue-600 hover:bg-blue-700"
         >
           {saveMutation.isPending ? "Сохранение..." : (
             <>

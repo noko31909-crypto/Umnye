@@ -43,8 +43,8 @@ export default function SerpinAIRecommendations() {
   return (
     <div className="space-y-6 p-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">AI Рекомендации</h1>
-        <p className="text-gray-500 mt-1">Интеллектуальные советы по управлению запасами</p>
+        <h1 className="text-3xl font-bold text-foreground">AI Рекомендации</h1>
+        <p className="text-muted-foreground mt-1">Интеллектуальные советы по управлению запасами</p>
       </div>
 
       {/* Summary Stats */}
@@ -53,28 +53,28 @@ export default function SerpinAIRecommendations() {
           <CardContent className="pt-4 text-center">
             <AlertTriangle className="w-6 h-6 text-red-500 mx-auto mb-2" />
             <p className="text-2xl font-bold">{urgentRecs.length}</p>
-            <p className="text-sm text-gray-500">Срочные</p>
+            <p className="text-sm text-muted-foreground">Срочные</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4 text-center">
             <AlertTriangle className="w-6 h-6 text-orange-500 mx-auto mb-2" />
             <p className="text-2xl font-bold">{warningRecs.length}</p>
-            <p className="text-sm text-gray-500">Предупреждения</p>
+            <p className="text-sm text-muted-foreground">Предупреждения</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4 text-center">
             <Lightbulb className="w-6 h-6 text-blue-500 mx-auto mb-2" />
             <p className="text-2xl font-bold">{infoRecs.length}</p>
-            <p className="text-sm text-gray-500">Советы</p>
+            <p className="text-sm text-muted-foreground">Советы</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4 text-center">
             <TrendingUp className="w-6 h-6 text-green-500 mx-auto mb-2" />
             <p className="text-2xl font-bold">{opportunityRecs.length}</p>
-            <p className="text-sm text-gray-500">Возможности</p>
+            <p className="text-sm text-muted-foreground">Возможности</p>
           </CardContent>
         </Card>
       </div>
@@ -83,7 +83,7 @@ export default function SerpinAIRecommendations() {
       <div className="space-y-4">
         {isLoading ? (
           <Card>
-            <CardContent className="py-8 text-center text-gray-400">
+            <CardContent className="py-8 text-center text-muted-foreground">
               <Brain className="w-8 h-8 mx-auto mb-4 animate-pulse" />
               <p>AI анализирует ваши данные...</p>
             </CardContent>
@@ -93,7 +93,7 @@ export default function SerpinAIRecommendations() {
             <CardContent className="py-8 text-center">
               <Brain className="w-8 h-8 mx-auto mb-4 text-green-500" />
               <h3 className="font-semibold text-lg">Всё в порядке!</h3>
-              <p className="text-gray-500 mt-2">AI не нашёл критических рекомендаций. Запасы на оптимальном уровне.</p>
+              <p className="text-muted-foreground mt-2">AI не нашёл критических рекомендаций. Запасы на оптимальном уровне.</p>
             </CardContent>
           </Card>
         ) : (
@@ -101,7 +101,7 @@ export default function SerpinAIRecommendations() {
             {/* Urgent */}
             {urgentRecs.length > 0 && (
               <div>
-                <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2">
+                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-red-500" />
                   Срочные ({urgentRecs.length})
                 </h2>
@@ -125,7 +125,7 @@ export default function SerpinAIRecommendations() {
             {/* Warnings */}
             {warningRecs.length > 0 && (
               <div>
-                <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2">
+                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-orange-500" />
                   Предупреждения ({warningRecs.length})
                 </h2>
@@ -149,7 +149,7 @@ export default function SerpinAIRecommendations() {
             {/* Info */}
             {infoRecs.length > 0 && (
               <div>
-                <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2">
+                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
                   <Lightbulb className="w-4 h-4 text-blue-500" />
                   Советы ({infoRecs.length})
                 </h2>
@@ -168,7 +168,7 @@ export default function SerpinAIRecommendations() {
             {/* Opportunities */}
             {opportunityRecs.length > 0 && (
               <div>
-                <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2">
+                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
                   <TrendingUp className="w-4 h-4 text-green-500" />
                   Возможности ({opportunityRecs.length})
                 </h2>
