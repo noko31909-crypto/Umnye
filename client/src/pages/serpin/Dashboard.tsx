@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
+import { SupplyScoreCard } from "@/components/serpin/SupplyScore";
 
 const BUSINESS_ID = 1; // Demo business ID
 
@@ -85,10 +86,12 @@ export default function SerpinDashboard() {
         <Brain className="w-5 h-5 text-blue-600" />
         <AlertTitle className="text-blue-900">Демо-сценарий (1–2 мин)</AlertTitle>
         <AlertDescription className="text-blue-800 text-sm">
-          1) Симулируйте продажу → 2) AI покажет риск дефицита → 3) Авто-заказ → 4) Сравните поставщиков → 5) Прогноз спроса → 6) Отследите статус в Заказах
+          Вместе пройдём цепочку: продажа → мы покажем риск дефицита → автозаказ → сравнение поставщиков → прогноз → статус в Заказах. Следите за Supply Score в шапке.
         </AlertDescription>
       </Alert>
 
+
+      <SupplyScoreCard variant="full" />
 
       {/* Impact narrative — jury metric */}
       <Card className="border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-blue-50 overflow-hidden">

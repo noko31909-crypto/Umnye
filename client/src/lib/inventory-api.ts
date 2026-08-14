@@ -101,6 +101,9 @@ export const inventoryApi = {
     forecast: (businessId: number, productId: number) =>
       mockStore.getExplainableForecast(businessId, productId),
   },
+  supplyHealth: {
+    get: (businessId: number) => mockStore.getSupplyHealthScore(businessId),
+  },
   planB: {
     simulateFailure: (orderId: number) => {
       const r = mockStore.simulateDeliveryFailure(orderId);

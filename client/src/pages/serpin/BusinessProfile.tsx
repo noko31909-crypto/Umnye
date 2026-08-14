@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Building2, MapPin, Package, Settings, Save } from "lucide-react";
 import { toast } from "sonner";
+import { SupplyScoreCard } from "@/components/serpin/SupplyScore";
 
 export default function SerpinBusinessProfile() {
   const userId = 1; // Demo user ID
@@ -54,6 +55,7 @@ export default function SerpinBusinessProfile() {
 
   return (
     <div className="space-y-6 p-6">
+      <SupplyScoreCard variant="full" />
       <div>
         <h1 className="text-3xl font-bold text-foreground">Профиль бизнеса</h1>
         <p className="text-muted-foreground mt-1">Настройки вашего бизнеса для AI рекомендаций</p>

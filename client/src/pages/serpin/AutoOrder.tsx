@@ -134,6 +134,9 @@ export default function SerpinAutoOrder() {
 
   return (
     <div className="space-y-6 p-6">
+      <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+        Активация автозаказа по критичным позициям: <strong>мы ожидаем +3 к Supply Score</strong> в течение ~2 недель при стабильных поставках.
+      </div>
       <div>
         <h1 className="text-3xl font-bold text-foreground">Авто-заказ</h1>
         <p className="text-muted-foreground mt-1">AI определил товары, которые нужно заказать</p>

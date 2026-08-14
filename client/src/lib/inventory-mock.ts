@@ -564,6 +564,121 @@ export function switchOrderSupplier(orderId: number, newSupplierId: number) {
   return order;
 }
 
+
+// ── Supply Health Score (0–100) — сквозная метрика продукта ─────────────────
+export type SupplyHealthBreakdown = {
+  stockHealth: number;      // 0-100
+  deliveryReliability: number;
+  forecastAccuracy: number;
+  autoOrderCoverage: number;
+};
+
+export type SupplyHealthScore = {
+  score: number;
+  grade: "A" | "B" | "C" | "D";
+  label: string;
+  tone: "good" | "warn" | "bad";
+  deltaVsCity: number;
+  cityAvg: number;
+  breakdown: SupplyHealthBreakdown;
+  drags: { title: string; detail: string; href: string; points: number }[];
+  narrative: string;
+};
+
+export function getSupplyHealthScore(businessId: number): SupplyHealthScore {
+  const prods = getProductsLocated(businessId);
+  const ords = orders.filter((o) => o.businessId === businessId);
+  const sups = suppliers.filter((s) => s.businessId === businessId);
+
+  const total = Math.max(prods.length, 1);
+  const critical = prods.filter((p) => p.status === "critical" || p.status === "out_of_stock").length;
+  const low = prods.filter((p) => p.status === "low_stock").length;
+  const stockHealth = Math.max(0, Math.round(100 - (critical / total) * 55 - (low / total) * 25));
+
+  const totalLate = sups.reduce((s, x) => s + (x.lateDeliveryCount || 0), 0);
+  const totalOrdCnt = Math.max(sups.reduce((s, x) => s + (x.totalOrders || 0), 0), 1);
+  const lateRate = totalLate / totalOrdCnt;
+  const deliveryReliability = Math.max(0, Math.round(100 - lateRate * 120));
+
+  // Demo: forecast accuracy as inverse of critical share + slight bonus if auto-order on
+  const autoOn = prods.filter((p) => p.autoOrderEnabled).length / total;
+  const forecastAccuracy = Math.max(40, Math.round(88 - (critical / total) * 40 + autoOn * 5));
+  const autoOrderCoverage = Math.round(autoOn * 100);
+
+  // Weighted score
+  const score = Math.round(
+    stockHealth * 0.4 +
+    deliveryReliability * 0.3 +
+    forecastAccuracy * 0.2 +
+    autoOrderCoverage * 0.1
+  );
+  const clamped = Math.min(100, Math.max(0, score));
+  const grade: SupplyHealthScore["grade"] =
+    clamped >= 85 ? "A" : clamped >= 70 ? "B" : clamped >= 55 ? "C" : "D";
+  const tone: SupplyHealthScore["tone"] =
+    clamped >= 75 ? "good" : clamped >= 55 ? "warn" : "bad";
+  const cityAvg = 62;
+  const deltaVsCity = clamped - cityAvg;
+
+  const drags: SupplyHealthScore["drags"] = [];
+  if (critical > 0) {
+    const worst = prods.filter((p) => p.status === "critical" || p.status === "out_of_stock").slice(0, 2);
+    drags.push({
+      title: `${critical} товар(а) в критическом дефиците`,
+      detail: worst.map((p) => p.name).join(", ") || "Проверьте остатки",
+      href: "/serpin/inventory",
+      points: Math.min(20, critical * 6),
+    });
+  }
+  if (lateRate > 0.08) {
+    const lateSup = [...sups].sort((a, b) => b.lateDeliveryCount - a.lateDeliveryCount)[0];
+    drags.push({
+      title: "Срывы поставок тянут индекс вниз",
+      detail: lateSup ? `${lateSup.name}: ${lateSup.lateDeliveryCount} опозданий` : "Надёжность поставщиков",
+      href: "/serpin/suppliers",
+      points: Math.min(15, Math.round(lateRate * 40)),
+    });
+  }
+  if (autoOrderCoverage < 80) {
+    drags.push({
+      title: "Автозаказ покрывает не все позиции",
+      detail: `Покрытие ${autoOrderCoverage}% — включите автозаказ на критичные товары`,
+      href: "/serpin/auto-order",
+      points: Math.round((100 - autoOrderCoverage) * 0.08),
+    });
+  }
+  if (drags.length === 0) {
+    drags.push({
+      title: "Снабжение в хорошей форме",
+      detail: "Держите автозаказ и следите за прогнозом перед пиками",
+      href: "/serpin/forecast",
+      points: 0,
+    });
+  }
+
+  const label =
+    grade === "A" ? "Отличное снабжение" :
+    grade === "B" ? "Стабильное снабжение" :
+    grade === "C" ? "Есть риски" : "Критичное снабжение";
+
+  const narrative =
+    deltaVsCity >= 0
+      ? `Ваш Supply Score: ${clamped} — на ${deltaVsCity} пунктов выше среднего по кофейням Алматы (${cityAvg}). Мы с вами удерживаем запасы под контролем.`
+      : `Ваш Supply Score: ${clamped} — на ${Math.abs(deltaVsCity)} пунктов ниже среднего по кофейням Алматы (${cityAvg}). Мы подскажем, что подтянуть в первую очередь.`;
+
+  return {
+    score: clamped,
+    grade,
+    label,
+    tone,
+    deltaVsCity,
+    cityAvg,
+    breakdown: { stockHealth, deliveryReliability, forecastAccuracy, autoOrderCoverage },
+    drags,
+    narrative,
+  };
+}
+
 export const mockStore = {
   // Products
   getProducts(businessId: number) {
@@ -962,7 +1077,10 @@ Object.assign(mockStore, {
   getExplainableForecast,
   simulateDeliveryFailure,
   switchOrderSupplier,
+  getSupplyHealthScore,
 });
 
+Object.assign(mockStore, { getSupplyHealthScore });
 export default mockStore;
+
 

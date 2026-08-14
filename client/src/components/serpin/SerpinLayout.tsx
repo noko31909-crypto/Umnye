@@ -2,6 +2,7 @@ import { useState, CSSProperties, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useSimpleAuth } from "@/hooks/useSimpleAuth";
 import { useInventory } from "@/lib/inventory-api";
+import { SupplyScoreChip } from "@/components/serpin/SupplyScore";
 import { useIsMobile } from "@/hooks/useMobile";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -166,6 +167,7 @@ function InventoryLayoutContent({ children }: { children: React.ReactNode }) {
             </Button>
           )}
           <div className="flex-1" />
+          <SupplyScoreChip />
           <select
             className="text-xs border border-border rounded-lg px-2 py-1.5 bg-background max-w-[200px] truncate"
             value={activeLocId}

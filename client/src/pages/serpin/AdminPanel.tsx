@@ -13,6 +13,7 @@ import {
   Bot, Database, Activity
 } from "lucide-react";
 import { toast } from "sonner";
+import { SupplyScoreCard } from "@/components/serpin/SupplyScore";
 
 const BUSINESS_ID = 1;
 
@@ -30,6 +31,7 @@ export default function SerpinAdminPanel() {
 
   return (
     <div className="space-y-6 p-6">
+      <SupplyScoreCard variant="admin" platformAvg={68} />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Админ-панель</h1>
