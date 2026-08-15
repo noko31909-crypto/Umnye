@@ -1,5 +1,5 @@
 import { useState, CSSProperties, useEffect } from "react";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { useSimpleAuth } from "@/hooks/useSimpleAuth";
 import { useInventory } from "@/lib/inventory-api";
 import { SupplyScoreChip } from "@/components/serpin/SupplyScore";
@@ -117,23 +117,20 @@ function InventoryLayoutContent({ children }: { children: React.ReactNode }) {
             {navItems.map((item) => {
               const isActive =
                 location === item.path ||
-                (item.path === "/serpin" && location === "/serpin/");
+                (item.path !== "/serpin" && location.startsWith(item.path)) ||
+                (item.path === "/serpin" && (location === "/serpin" || location === "/serpin/"));
               return (
                 <SidebarMenuItem key={item.path}>
                   <SidebarMenuButton
+                    asChild
                     isActive={isActive}
-                    onClick={() => navigate(item.path)}
                     tooltip={item.label}
-                    className="h-10 transition-all font-normal"
+                    className="h-10"
                   >
-                    <item.icon
-                      className={`h-4 w-4 ${
-                        isActive ? "text-blue-600" : "text-muted-foreground"
-                      }`}
-                    />
-                    <span className={isActive ? "text-blue-600 font-medium" : ""}>
-                      {item.label}
-                    </span>
+                    <Link href={item.path}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.label}</span>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               );

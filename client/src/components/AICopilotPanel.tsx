@@ -186,15 +186,20 @@ export default function AICopilotPanel({ businessContext }: AICopilotPanelProps)
   };
 
 
-  const onDragStart = (e: React.PointerEvent) => {
-    // Don't start drag from action buttons
+    const onDragStart = (e: React.PointerEvent) => {
     const t = e.target as HTMLElement;
-    if (t.closest("button") && !t.closest("[data-drag-handle]")) return;
+    // Allow drag from handle or the floating launcher itself
+    if (t.closest("button") && !t.closest("[data-drag-handle]") && !t.closest("[aria-label^=\"Open Jaqyn\"]")) {
+      // minimize/close buttons inside panel
+      if (t.closest(".bg-gradient-to-r") === null) return;
+    }
+    if (t.closest("[data-no-drag]")) return;
     e.preventDefault();
     const startY = e.clientY;
     const startX = e.clientX;
     const startBottom = panelBottom;
     const startRight = panelRight;
+    let moved = false;
     dragRef.current = { startY, startBottom };
 
     let lastBottom = startBottom;
@@ -202,23 +207,30 @@ export default function AICopilotPanel({ businessContext }: AICopilotPanelProps)
     const onMove = (ev: PointerEvent) => {
       const dy = startY - ev.clientY;
       const dx = startX - ev.clientX;
+      if (Math.abs(dy) > 4 || Math.abs(dx) > 4) moved = true;
       lastBottom = Math.max(8, Math.min(window.innerHeight - 80, startBottom + dy));
       lastRight = Math.max(8, Math.min(window.innerWidth - 80, startRight + dx));
       setPanelBottom(lastBottom);
       setPanelRight(lastRight);
     };
     const onUp = () => {
-      dragRef.current = null;
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
       try {
         localStorage.setItem("jaqyn-ai-panel-bottom", String(lastBottom));
         localStorage.setItem("jaqyn-ai-panel-right", String(lastRight));
       } catch {}
+      // Keep dragRef until next tick so click handler can see "was dragging"
+      if (moved) {
+        setTimeout(() => { dragRef.current = null; }, 50);
+      } else {
+        dragRef.current = null;
+      }
     };
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
   };
+
   const onDragMove = (_e: React.PointerEvent) => {};
   const onDragEnd = () => {};
 
@@ -228,10 +240,18 @@ export default function AICopilotPanel({ businessContext }: AICopilotPanelProps)
     <>
       {!isOpen && (
         <button
-          onClick={() => setIsOpen(true)}
-          style={{ bottom: panelBottom, right: panelRight }}
-          className="fixed z-50 flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-full px-5 py-3 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95"
-          aria-label="Open Jaqyn AI"
+          type="button"
+          data-drag-handle
+          onPointerDown={onDragStart}
+          onClick={(e) => {
+            // If user dragged, skip open
+            if (dragRef.current) return;
+            setIsOpen(true);
+          }}
+          style={{ bottom: panelBottom, right: panelRight, touchAction: "none" }}
+          className="fixed z-50 flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-full px-5 py-3 shadow-lg hover:shadow-xl transition-all duration-200 cursor-grab active:cursor-grabbing"
+          aria-label="Open Jaqyn AI — перетащите вверх/вниз"
+          title="Перетащите вверх или вниз · клик — открыть чат"
         >
           <Sparkles className="w-5 h-5" />
           <span className="text-sm font-semibold">Jaqyn AI</span>
@@ -259,14 +279,14 @@ export default function AICopilotPanel({ businessContext }: AICopilotPanelProps)
             </div>
             <div className="flex items-center gap-1">
               {hasConversation && (
-                <button onClick={handleReset} className="hover:bg-white/20 rounded-lg p-1.5 transition-colors" title="New conversation">
+                <button data-no-drag onClick={handleReset} className="hover:bg-white/20 rounded-lg p-1.5 transition-colors" title="New conversation">
                   <RotateCcw className="w-4 h-4" />
                 </button>
               )}
-              <button onClick={() => setIsMinimized(!isMinimized)} className="hover:bg-white/20 rounded-lg p-1.5 transition-colors">
+              <button data-no-drag onClick={() => setIsMinimized(!isMinimized)} className="hover:bg-white/20 rounded-lg p-1.5 transition-colors">
                 <ChevronDown className={cn("w-4 h-4 transition-transform", isMinimized && "rotate-180")} />
               </button>
-              <button onClick={() => setIsOpen(false)} className="hover:bg-white/20 rounded-lg p-1.5 transition-colors" aria-label="Close">
+              <button data-no-drag onClick={() => setIsOpen(false)} className="hover:bg-white/20 rounded-lg p-1.5 transition-colors" aria-label="Close">
                 <X className="w-4 h-4" />
               </button>
             </div>
