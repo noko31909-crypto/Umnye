@@ -32,6 +32,7 @@ import {
   Sparkles,
   GitCompare,
 } from "lucide-react";
+import JaqynLogo from "@/components/JaqynLogo";
 
 interface SerpinLayoutProps {
   children: React.ReactNode;
@@ -97,7 +98,7 @@ function InventoryLayoutContent({ children }: { children: React.ReactNode }) {
             </button>
             {!isCollapsed && (
               <div className="flex items-center gap-2 min-w-0">
-                <Sparkles className="h-5 w-5 text-blue-600 shrink-0" />
+                <JaqynLogo size={22} className="text-foreground shrink-0" />
                 <div className="min-w-0">
                   <span className="font-bold text-foreground tracking-tight block truncate text-sm">
                     Jaqyn AI

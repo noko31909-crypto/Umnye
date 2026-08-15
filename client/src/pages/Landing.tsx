@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/hooks/useTranslation";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ArrowRight, Zap, Users, TrendingUp, MessageSquare, BarChart3, Sparkles } from "lucide-react";
+import JaqynLogo from "@/components/JaqynLogo";
 
 export default function Landing() {
   const [, navigate] = useLocation();
@@ -61,7 +62,7 @@ export default function Landing() {
             <div className="space-y-3">
               <div className="flex items-start gap-3">
                 <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-1">
-                  <Sparkles className="w-4 h-4 text-blue-600" />
+                  <JaqynLogo size={18} className="text-foreground" />
                 </div>
                 <div>
                   <p className="font-semibold text-gray-900">Интеллектуальные рекомендации</p>

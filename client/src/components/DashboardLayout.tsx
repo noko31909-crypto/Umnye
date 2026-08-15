@@ -35,6 +35,7 @@ import {
   PanelLeft,
   Sparkles,
 } from "lucide-react";
+import JaqynLogo from "@/components/JaqynLogo";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from "./DashboardLayoutSkeleton";
@@ -84,7 +85,7 @@ export default function DashboardLayout({
         <div className="flex flex-col items-center gap-8 p-8 max-w-md w-full">
           <div className="flex flex-col items-center gap-4">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-8 h-8 text-blue-600" />
+              <JaqynLogo size={32} className="text-foreground" />
               <span className="text-2xl font-bold text-foreground">Jaqyn AI</span>
             </div>
             <h1 className="text-xl font-semibold text-center text-foreground">
@@ -187,7 +188,7 @@ function DashboardLayoutContent({
               </button>
               {!isCollapsed && (
                 <div className="flex items-center gap-2 min-w-0">
-                  <Sparkles className="h-5 w-5 text-blue-600 shrink-0" />
+                  <JaqynLogo size={22} className="text-foreground shrink-0" />
                   <span className="font-bold text-foreground tracking-tight truncate">
                     Jaqyn AI
                   </span>
@@ -310,7 +311,7 @@ function DashboardLayoutContent({
             <div className="flex items-center gap-2">
               <SidebarTrigger className="h-9 w-9 rounded-lg bg-background" />
               <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-blue-600" />
+                <JaqynLogo size={18} className="text-foreground" />
                 <span className="font-semibold text-foreground">
                   {activeMenuItem?.label ?? "Jaqyn AI"}
                 </span>
