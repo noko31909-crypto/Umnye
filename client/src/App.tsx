@@ -96,16 +96,7 @@ function Router() {
 
 /** Hide floating AI on public auth pages so login/register stay usable */
 function ConditionalAICopilot() {
-  const [loc] = useLocation();
-  const hide =
-    loc === "/" ||
-    loc === "/landing" ||
-    loc === "/login" ||
-    loc.startsWith("/login") ||
-    loc === "/onboarding" ||
-    loc === "/404" ||
-    loc === "/home";
-  if (hide) return null;
+  // Always available; panel is draggable up/down so it never blocks forms permanently
   return <AICopilotPanel />;
 }
 

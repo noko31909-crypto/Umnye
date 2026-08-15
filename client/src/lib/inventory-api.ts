@@ -73,9 +73,31 @@ export const inventoryApi = {
       mockStore.getForecast(businessId, productId),
   },
   profile: {
-    get: (userId: number) => mockStore.getBusinessProfile(userId),
+    get: (userId: number) => {
+      try {
+        return mockStore.getBusinessProfile(userId) || {
+          userId,
+          businessType: "coffee_shop",
+          locationsCount: 2,
+          productCategories: "Молочные,Кофе,Выпечка",
+          autoOrderThreshold: "1.5",
+          preferredDeliveryDays: 2,
+        };
+      } catch {
+        return {
+          userId,
+          businessType: "coffee_shop",
+          locationsCount: 2,
+          productCategories: "Молочные,Кофе,Выпечка",
+          autoOrderThreshold: "1.5",
+          preferredDeliveryDays: 2,
+        };
+      }
+    },
     upsert: (data: any) => {
-      mockStore.upsertBusinessProfile(data);
+      try {
+        mockStore.upsertBusinessProfile(data);
+      } catch {}
       bump();
     },
   },

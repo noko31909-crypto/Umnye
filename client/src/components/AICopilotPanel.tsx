@@ -101,6 +101,15 @@ export default function AICopilotPanel({ businessContext }: AICopilotPanelProps)
     },
   ]);
   const [input, setInput] = useState("");
+  // Vertical position: offset from bottom (px), draggable up/down
+  const [panelBottom, setPanelBottom] = useState(() => {
+    if (typeof window === "undefined") return 24;
+    const saved = localStorage.getItem("jaqyn-ai-panel-bottom");
+    return saved ? Math.max(8, Math.min(Number(saved) || 24, window.innerHeight - 120)) : 24;
+  });
+  const [panelRight, setPanelRight] = useState(24);
+  const dragRef = useRef<{ startY: number; startBottom: number } | null>(null);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -159,6 +168,23 @@ export default function AICopilotPanel({ businessContext }: AICopilotPanelProps)
     setMessages([{ id: "welcome-reset", role: "assistant", content: "Hi! I'm **Jaqyn AI**, your AI Growth Copilot. How can I help you today?" }]);
   };
 
+
+  const onDragStart = (e: React.PointerEvent) => {
+    e.preventDefault();
+    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+    dragRef.current = { startY: e.clientY, startBottom: panelBottom };
+  };
+  const onDragMove = (e: React.PointerEvent) => {
+    if (!dragRef.current) return;
+    const dy = dragRef.current.startY - e.clientY; // drag up raises panel
+    const next = Math.max(8, Math.min(window.innerHeight - 100, dragRef.current.startBottom + dy));
+    setPanelBottom(next);
+    try { localStorage.setItem("jaqyn-ai-panel-bottom", String(next)); } catch {}
+  };
+  const onDragEnd = () => {
+    dragRef.current = null;
+  };
+
   const hasConversation = messages.length > 1;
 
   return (
@@ -166,7 +192,11 @@ export default function AICopilotPanel({ businessContext }: AICopilotPanelProps)
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-full px-5 py-3 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95"
+          onPointerDown={onDragStart}
+          onPointerMove={onDragMove}
+          onPointerUp={onDragEnd}
+          style={{ bottom: panelBottom, right: panelRight }}
+          className="fixed z-50 flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-full px-5 py-3 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95"
           aria-label="Open Jaqyn AI"
         >
           <Sparkles className="w-5 h-5" />
@@ -175,8 +205,16 @@ export default function AICopilotPanel({ businessContext }: AICopilotPanelProps)
       )}
 
       {isOpen && (
-        <div className={cn("fixed bottom-6 right-6 z-50 w-[400px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300", isMinimized ? "h-16" : "h-[600px]")}>
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-3 flex items-center justify-between shrink-0">
+        <div style={{ bottom: panelBottom, right: panelRight, maxHeight: "min(600px, calc(100vh - 24px))" }}
+          className={cn("fixed z-50 w-[min(400px,calc(100vw-24px))] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300", isMinimized ? "h-16" : "h-[min(600px,calc(100vh-48px))]")}>
+          <div
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-3 flex items-center justify-between shrink-0 cursor-grab active:cursor-grabbing touch-none select-none"
+            onPointerDown={onDragStart}
+            onPointerMove={onDragMove}
+            onPointerUp={onDragEnd}
+            onPointerCancel={onDragEnd}
+            title="Перетащите вверх или вниз"
+          >
             <div className="flex items-center gap-2">
               <div className="relative">
                 <Sparkles className="w-5 h-5" />
