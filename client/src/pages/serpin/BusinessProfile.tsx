@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useInventory } from "@/lib/inventory-api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,32 +13,27 @@ export default function SerpinBusinessProfile() {
   const userId = 1; // Demo user ID
 
   const inv = useInventory();
-  let profile: any = null;
-  try {
-    profile = inv.profile.get(userId);
-  } catch {
-    profile = null;
-  }
-
-  const [formData, setFormData] = useState({
-    businessType: "coffee_shop" as string,
-    locationsCount: 2,
-    productCategories: "Молочные,Кофе,Выпечка,Сиропы,Расходники,Чай,Напитки",
-    autoOrderThreshold: "1.5",
-    preferredDeliveryDays: 2,
+  const [formData, setFormData] = useState(() => {
+    try {
+      const profile = inv.profile.get(userId);
+      if (profile) {
+        return {
+          businessType: String(profile.businessType || "coffee_shop"),
+          locationsCount: Number(profile.locationsCount) || 1,
+          productCategories: String(profile.productCategories || ""),
+          autoOrderThreshold: String(profile.autoOrderThreshold || "1.5"),
+          preferredDeliveryDays: Number(profile.preferredDeliveryDays) || 3,
+        };
+      }
+    } catch {}
+    return {
+      businessType: "coffee_shop",
+      locationsCount: 2,
+      productCategories: "Молочные,Кофе,Выпечка,Сиропы,Расходники,Чай,Напитки",
+      autoOrderThreshold: "1.5",
+      preferredDeliveryDays: 2,
+    };
   });
-
-  useEffect(() => {
-    if (profile) {
-      setFormData({
-        businessType: String(profile.businessType || "coffee_shop"),
-        locationsCount: Number(profile.locationsCount) || 1,
-        productCategories: String(profile.productCategories || ""),
-        autoOrderThreshold: String(profile.autoOrderThreshold || "1.5"),
-        preferredDeliveryDays: Number(profile.preferredDeliveryDays) || 3,
-      });
-    }
-  }, [profile]);
 
   const saveMutation = {
     isPending: false,
