@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
-import { Route, Switch } from "wouter";
+import { Route, Switch, useLocation } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { useSimpleAuth } from "@/hooks/useSimpleAuth";
@@ -93,6 +93,22 @@ function Router() {
   );
 }
 
+
+/** Hide floating AI on public auth pages so login/register stay usable */
+function ConditionalAICopilot() {
+  const [loc] = useLocation();
+  const hide =
+    loc === "/" ||
+    loc === "/landing" ||
+    loc === "/login" ||
+    loc.startsWith("/login") ||
+    loc === "/onboarding" ||
+    loc === "/404" ||
+    loc === "/home";
+  if (hide) return null;
+  return <AICopilotPanel />;
+}
+
 function App() {
   return (
     <ErrorBoundary>
@@ -101,8 +117,7 @@ function App() {
           <TooltipProvider>
             <Toaster />
             <Router />
-            {/* Global AI Copilot Panel — accessible from every route */}
-            <AICopilotPanel />
+            <ConditionalAICopilot />
           </TooltipProvider>
         </LanguageProvider>
       </ThemeProvider>
