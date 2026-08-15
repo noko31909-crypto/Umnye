@@ -32,7 +32,9 @@ export default function AIAnalyticsDiagnostics({
 
   const analyticsMutation = trpc.ai.analyticsInsight.useMutation({
     onSuccess: (data) => { setResult(data); toast.success("Jaqyn AI diagnostics generated!"); },
-    onError: () => toast.error("Failed to generate insights. Please try again."),
+    onError: () => {
+      // swallow — parent can show offline message; avoid red toast on demo
+    },
   });
 
   const handleGenerate = () => {

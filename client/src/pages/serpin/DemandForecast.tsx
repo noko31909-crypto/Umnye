@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useInventory } from "@/lib/inventory-api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +16,7 @@ export default function SerpinDemandForecast() {
   const [forecastDays, setForecastDays] = useState(14);
 
   const inv = useInventory();
-  const products = inv.products.list(BUSINESS_ID);
+  const products = inv.products.list(BUSINESS_ID) || [];
   const isLoading = false;
   const forecastData = selectedProductId
     ? inv.explain.forecast(BUSINESS_ID, selectedProductId)
@@ -24,25 +24,52 @@ export default function SerpinDemandForecast() {
 
   const chartData = (() => {
     if (!forecastData) return [];
+    const safeNum = (v: any) => {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : 0;
+    };
+    const hist = (forecastData as any).history || [];
+    const fut =
+      (forecastData as any).forecast ||
+      (forecastData as any).forecast14 ||
+      (forecastData as any).forecast7 ||
+      [];
 
-    const historical = (forecastData.history || []).map((h: any) => ({
+    const historical = hist.map((h: any) => ({
       date: new Date(h.date).toLocaleDateString("ru-KZ", { day: "numeric", month: "short" }),
-      actual: Number(h.quantity),
+      actual: safeNum(h.quantity ?? h.qty),
       forecast: null as number | null,
     }));
 
-    const forecast = (forecastData.forecast || []).slice(0, forecastDays).map((f: any) => ({
+    const forecast = fut.slice(0, forecastDays).map((f: any) => ({
       date: new Date(f.date).toLocaleDateString("ru-KZ", { day: "numeric", month: "short" }),
       actual: null as number | null,
-      forecast: Math.round(Number(f.predicted)),
+      forecast: Math.round(safeNum(f.predicted ?? f.qty)),
     }));
 
     return [...historical, ...forecast];
   })();
 
-  const totalPredicted = (forecastData?.forecast || [])
-    .slice(0, forecastDays)
-    .reduce((sum: number, f: any) => sum + Number(f.predicted), 0);
+  const totalPredicted = (() => {
+    if (!forecastData) return 0;
+    const fut =
+      (forecastData as any).forecast ||
+      (forecastData as any).forecast14 ||
+      (forecastData as any).forecast7 ||
+      [];
+    return fut
+      .slice(0, forecastDays)
+      .reduce((sum: number, f: any) => {
+        const n = Number(f.predicted ?? f.qty);
+        return sum + (Number.isFinite(n) ? n : 0);
+      }, 0);
+  })();
+
+  useEffect(() => {
+    if (selectedProductId == null && products && products.length > 0) {
+      setSelectedProductId(products[0].id);
+    }
+  }, [products, selectedProductId]);
 
   const selectedProduct = products?.find(p => p.id === selectedProductId);
 
@@ -92,7 +119,13 @@ export default function SerpinDemandForecast() {
                 <Package className="w-4 h-4 text-blue-500" />
                 <span className="text-sm text-muted-foreground">Средние продажи/день</span>
               </div>
-              <p className="text-2xl font-bold mt-1">{forecastData.avgDaily?.toFixed?.(1) ?? forecastData.avgDaily}</p>
+              <p className="text-2xl font-bold mt-1">{
+                Number.isFinite(Number((forecastData as any).avgDaily))
+                  ? Number((forecastData as any).avgDaily).toFixed(1)
+                  : (Number.isFinite(Number((forecastData as any).recommendedQty))
+                      ? (Number((forecastData as any).recommendedQty) / 7).toFixed(1)
+                      : "—")}
+              </p>
             </CardContent>
           </Card>
           <Card>

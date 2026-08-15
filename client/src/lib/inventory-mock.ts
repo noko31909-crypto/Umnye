@@ -483,8 +483,29 @@ export function getExplainableForecast(businessId: number, productId: number) {
   const uplift = factors.reduce((s, f) => s + (typeof f.weight === "number" ? f.weight : 0), 0);
   const recommendedQty = Math.ceil(avg * 7 * (1 + uplift * 0.5));
 
+  const trend = isThursday ? 12 : isWeekend ? 8 : 5;
+  const forecastPts = (base.forecast14 || base.forecast7 || []).map((f: any) => ({
+    date: f.date,
+    predicted: f.qty,
+    qty: f.qty,
+  }));
   return {
     ...base,
+    history: (base.history || []).map((h: any) => ({
+      date: h.date,
+      quantity: h.qty,
+      qty: h.qty,
+    })),
+    forecast: forecastPts,
+    avgDaily: Math.round(avg * 10) / 10,
+    trend,
+    daysRemaining: product
+      ? Math.round((parseFloat(product.currentStock) / Math.max(avg, 0.1)) * 10) / 10
+      : 0,
+    recommendedMinStock: Math.ceil(avg * 5),
+    aiAdvice: isThursday
+      ? `Мы рекомендуем поднять заказ: четверг + тренд (+${trend}%). Рекомендуемый объём ~${recommendedQty} ${product?.unit ?? "шт"}.`
+      : `Держите буфер на ${Math.ceil(avg * 3)} ${product?.unit ?? "шт"} — так мы снизим риск дефицита.`,
     factors,
     narrative: isThursday
       ? `+${Math.round(uplift * 40)}% к среднему — четверг и тренд роста; в прошлом году такой же паттерн перед пиком.`
