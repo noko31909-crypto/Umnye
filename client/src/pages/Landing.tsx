@@ -31,10 +31,8 @@ export default function Landing() {
       {/* Navigation */}
       <nav className="border-b border-gray-200/50 backdrop-blur-sm sticky top-0 z-40 bg-white/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">✨</span>
-            </div>
+          <div className="flex items-center gap-2.5">
+            <JaqynLogo size={36} className="text-gray-900" />
             <h1 className="text-2xl font-bold text-gray-900">Jaqyn AI</h1>
           </div>
           <Button onClick={handleStartClick} variant="outline" className="gap-2">

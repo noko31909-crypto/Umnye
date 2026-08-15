@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useDemoStore } from "@/store/demoStore";
 import { ArrowRight, ArrowLeft } from "lucide-react";
+import JaqynLogo from "@/components/JaqynLogo";
 
 type Step = "business-type" | "business-size" | "business-goal";
 
@@ -117,9 +118,7 @@ export default function Onboarding() {
       {/* Header */}
       <div className="text-center mb-8">
         <div className="flex items-center justify-center gap-2 mb-4">
-          <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-lg">✨</span>
-          </div>
+          <JaqynLogo size={40} className="text-gray-900" />
           <h1 className="text-3xl font-bold text-gray-900">Jaqyn AI</h1>
         </div>
         <p className="text-gray-600">Давайте настроим ваш профиль</p>
