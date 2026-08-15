@@ -96,8 +96,7 @@ function Router() {
 
 /** Hide floating AI on public auth pages so login/register stay usable */
 function ConditionalAICopilot() {
-  // Always available; panel is draggable up/down so it never blocks forms permanently
-  return <AICopilotPanel />;
+  return null;
 }
 
 function App() {
@@ -108,7 +107,7 @@ function App() {
           <TooltipProvider>
             <Toaster />
             <Router />
-            <ConditionalAICopilot />
+            {/* AICopilot removed — blocked UX on mobile */}
           </TooltipProvider>
         </LanguageProvider>
       </ThemeProvider>
