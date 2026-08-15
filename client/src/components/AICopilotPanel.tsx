@@ -107,7 +107,11 @@ export default function AICopilotPanel({ businessContext }: AICopilotPanelProps)
     const saved = localStorage.getItem("jaqyn-ai-panel-bottom");
     return saved ? Math.max(8, Math.min(Number(saved) || 24, window.innerHeight - 120)) : 24;
   });
-  const [panelRight, setPanelRight] = useState(24);
+  const [panelRight, setPanelRight] = useState(() => {
+    if (typeof window === "undefined") return 24;
+    const saved = localStorage.getItem("jaqyn-ai-panel-right");
+    return saved ? Math.max(8, Number(saved) || 24) : 24;
+  });
   const dragRef = useRef<{ startY: number; startBottom: number } | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -126,9 +130,12 @@ export default function AICopilotPanel({ businessContext }: AICopilotPanelProps)
     scrollToBottom();
   }, [messages, scrollToBottom]);
 
+  const [isSending, setIsSending] = useState(false);
+
   const sendMessage = useCallback(
     async (content: string) => {
-      if (!content.trim() || chatMutation.isPending) return;
+      if (!content.trim() || isSending) return;
+      setIsSending(true);
 
       const userMsg: Message = { id: `user-${Date.now()}`, role: "user", content };
       const loadingMsg: Message = { id: `loading-${Date.now()}`, role: "assistant", content: "", isLoading: true };
@@ -141,21 +148,31 @@ export default function AICopilotPanel({ businessContext }: AICopilotPanelProps)
         .map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
       history.push({ role: "user", content });
 
+      const finish = (text: string) => {
+        setMessages((prev) =>
+          prev.map((m) => (m.isLoading ? { ...m, content: text, isLoading: false } : m))
+        );
+        setIsSending(false);
+      };
+
       try {
-        const result = await chatMutation.mutateAsync({ messages: history, businessContext });
-        setMessages((prev) =>
-          prev.map((m) => (m.isLoading ? { ...m, content: result.content, isLoading: false } : m))
-        );
+        // Race: server vs 1.2s timeout → always answer (demo on stage)
+        const result = await Promise.race([
+          chatMutation.mutateAsync({ messages: history, businessContext }),
+          new Promise<null>((resolve) => setTimeout(() => resolve(null), 1200)),
+        ]);
+        if (result && (result as any).content) {
+          finish((result as any).content);
+        } else {
+          await new Promise((r) => setTimeout(r, 400));
+          finish(buildDemoReply(content, businessContext));
+        }
       } catch {
-        // Server LLM unavailable (common on Vercel without forge keys) — local demo reply
-        await new Promise((r) => setTimeout(r, 600));
-        const reply = buildDemoReply(content, businessContext);
-        setMessages((prev) =>
-          prev.map((m) => (m.isLoading ? { ...m, content: reply, isLoading: false } : m))
-        );
+        await new Promise((r) => setTimeout(r, 400));
+        finish(buildDemoReply(content, businessContext));
       }
     },
-    [messages, chatMutation, businessContext]
+    [messages, chatMutation, businessContext, isSending]
   );
 
   const handleSend = () => { if (input.trim()) sendMessage(input.trim()); };
@@ -170,20 +187,40 @@ export default function AICopilotPanel({ businessContext }: AICopilotPanelProps)
 
 
   const onDragStart = (e: React.PointerEvent) => {
+    // Don't start drag from action buttons
+    const t = e.target as HTMLElement;
+    if (t.closest("button") && !t.closest("[data-drag-handle]")) return;
     e.preventDefault();
-    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
-    dragRef.current = { startY: e.clientY, startBottom: panelBottom };
+    const startY = e.clientY;
+    const startX = e.clientX;
+    const startBottom = panelBottom;
+    const startRight = panelRight;
+    dragRef.current = { startY, startBottom };
+
+    let lastBottom = startBottom;
+    let lastRight = startRight;
+    const onMove = (ev: PointerEvent) => {
+      const dy = startY - ev.clientY;
+      const dx = startX - ev.clientX;
+      lastBottom = Math.max(8, Math.min(window.innerHeight - 80, startBottom + dy));
+      lastRight = Math.max(8, Math.min(window.innerWidth - 80, startRight + dx));
+      setPanelBottom(lastBottom);
+      setPanelRight(lastRight);
+    };
+    const onUp = () => {
+      dragRef.current = null;
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      try {
+        localStorage.setItem("jaqyn-ai-panel-bottom", String(lastBottom));
+        localStorage.setItem("jaqyn-ai-panel-right", String(lastRight));
+      } catch {}
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
   };
-  const onDragMove = (e: React.PointerEvent) => {
-    if (!dragRef.current) return;
-    const dy = dragRef.current.startY - e.clientY; // drag up raises panel
-    const next = Math.max(8, Math.min(window.innerHeight - 100, dragRef.current.startBottom + dy));
-    setPanelBottom(next);
-    try { localStorage.setItem("jaqyn-ai-panel-bottom", String(next)); } catch {}
-  };
-  const onDragEnd = () => {
-    dragRef.current = null;
-  };
+  const onDragMove = (_e: React.PointerEvent) => {};
+  const onDragEnd = () => {};
 
   const hasConversation = messages.length > 1;
 
@@ -192,9 +229,6 @@ export default function AICopilotPanel({ businessContext }: AICopilotPanelProps)
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          onPointerDown={onDragStart}
-          onPointerMove={onDragMove}
-          onPointerUp={onDragEnd}
           style={{ bottom: panelBottom, right: panelRight }}
           className="fixed z-50 flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-full px-5 py-3 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95"
           aria-label="Open Jaqyn AI"
@@ -208,12 +242,10 @@ export default function AICopilotPanel({ businessContext }: AICopilotPanelProps)
         <div style={{ bottom: panelBottom, right: panelRight, maxHeight: "min(600px, calc(100vh - 24px))" }}
           className={cn("fixed z-50 w-[min(400px,calc(100vw-24px))] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300", isMinimized ? "h-16" : "h-[min(600px,calc(100vh-48px))]")}>
           <div
+            data-drag-handle
             className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-3 flex items-center justify-between shrink-0 cursor-grab active:cursor-grabbing touch-none select-none"
             onPointerDown={onDragStart}
-            onPointerMove={onDragMove}
-            onPointerUp={onDragEnd}
-            onPointerCancel={onDragEnd}
-            title="Перетащите вверх или вниз"
+            title="Перетащите панель"
           >
             <div className="flex items-center gap-2">
               <div className="relative">
@@ -276,7 +308,7 @@ export default function AICopilotPanel({ businessContext }: AICopilotPanelProps)
                       <button
                         key={action.label}
                         onClick={() => sendMessage(action.prompt)}
-                        disabled={chatMutation.isPending}
+                        disabled={isSending}
                         className="flex items-center gap-2 px-3 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-100 hover:border-blue-200 transition-all text-left disabled:opacity-50"
                       >
                         <span className="text-base">{action.icon}</span>
@@ -297,11 +329,11 @@ export default function AICopilotPanel({ businessContext }: AICopilotPanelProps)
                     placeholder="Ask Jaqyn AI anything..."
                     className="flex-1 min-h-[40px] max-h-[120px] resize-none text-sm border-gray-200 focus:border-blue-300 rounded-xl"
                     rows={1}
-                    disabled={chatMutation.isPending}
+                    disabled={isSending}
                   />
                   <Button
                     onClick={handleSend}
-                    disabled={!input.trim() || chatMutation.isPending}
+                    disabled={!input.trim() || isSending}
                     size="icon"
                     className="h-10 w-10 rounded-xl bg-blue-600 hover:bg-blue-700 shrink-0"
                   >
